@@ -91,7 +91,7 @@ jobs:
           npx cap sync ios
           # Placeholder for real IPA build
           mkdir -p output
-          touch "output/App.ipa" 
+          echo "Placeholder for FacturaPro VE iOS IPA" > "output/App.ipa"
 
       - name: Rename IPA
         run: |
@@ -112,6 +112,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
 
