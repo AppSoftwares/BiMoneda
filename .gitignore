@@ -58,3 +58,6 @@ repomix-output.xml
 revision_seguridad.artifact.txt
 .artifacts/
 scratch/
+
+# Private Mockups/Sketches
+Inicio_provider_dashboard/
