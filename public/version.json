@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "notes": "Admin: Added eye toggle button for payment proof visibility to improve dashboard clarity",
-  "android_url": "https://github.com/AppSoftwares/Factura-Pro-VE/releases/download/v1.0.0/FacturaPro.VE.App.1.0.0.apk",
-  "ios_url": "https://github.com/AppSoftwares/Factura-Pro-VE/releases/download/v1.0.0/FacturaPro.VE.App.1.0.0.ipa"
+  "version": "1.0.2",
+  "notes": "Admin: Version 1.0.2 - Full Functional Release with Multi-language, Dark Mode, and Supabase Integration. Fixed Auth persistence and Dashboard UI.",
+  "android_url": "https://github.com/AppSoftwares/Factura-Pro-VE/releases/download/v1.0.2/FacturaPro.VE.App.1.0.2.apk",
+  "ios_url": "https://github.com/AppSoftwares/Factura-Pro-VE/releases/download/v1.0.2/FacturaPro.VE.App.1.0.2.ipa"
 }
