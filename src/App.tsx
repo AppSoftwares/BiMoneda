@@ -39,7 +39,7 @@ function App() {
                 <span className="text-xs font-bold text-[#006495]">VEF</span>
               </div>
               <div className="text-xl font-bold text-[#006495]">162,000.00</div>
-              <div className="text-[10px] text-gray-400 mt-1">BCV Rate: 36.00</div>
+              <div className="text-[10px] text-gray-400 mt-1">BCV Rate: 36.00 | IGTF Incl.</div>
             </div>
           </div>
         </div>

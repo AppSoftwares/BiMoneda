@@ -1,0 +1,50 @@
+AUDITORÍA TÉCNICA Y DE CIBERSEGURIDAD — FacturaPro VE
+Rol: Ingeniero Principal Full-Stack / Arquitecto de Ciberseguridad
+
+================================================================
+0. ACCIÓN INMEDIATA: SOLUCIÓN TAILWIND CSS
+================================================================
+Se han creado los archivos tailwind.config.js y postcss.config.js en la raíz.
+Esto soluciona el problema de los estilos "rotos" y los iconos gigantes en el iPhone.
+
+================================================================
+1. ARQUITECTURA: DECISIÓN DE BASE DE CÓDIGO
+================================================================
+Se recomienda ELIMINAR la carpeta 'app/' (Kotlin Nativo) y mantener únicamente
+la base de código React + Capacitor (src/, android/, ios/).
+Riesgo: Mantener ambas genera inconsistencias legales en el cálculo de impuestos.
+
+================================================================
+2. FIXES DE SEGURIDAD APLICADOS
+================================================================
+
+Archivo: app/src/main/AndroidManifest.xml
+Archivo: android/app/src/main/AndroidManifest.xml
+- android:allowBackup="true"
++ android:allowBackup="false"
+
+Archivo: android/app/src/main/res/xml/file_paths.xml
+- <external-path name="my_images" path="." />
++ <external-files-path name="my_images" path="." />
+
+Archivo: app/build.gradle.kts
+- isMinifyEnabled = false
++ isMinifyEnabled = true
++ isShrinkResources = true
+
+Archivo: index.html
++ <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; ...">
+
+================================================================
+3. CÁLCULO DE IGTF (Venezuela)
+================================================================
+Se ha identificado que el IGTF no se calcula automáticamente. Se sugiere aplicar:
+igtfRatePercent = if (paymentMethod in ["Zelle", "Efectivo USD"]) 3.0 else 0.0
+
+================================================================
+PRÓXIMOS PASOS
+================================================================
+1. Ejecuta: pnpm install
+2. Ejecuta: pnpm run build
+3. Sincroniza: npx cap sync
+4. Despliega en iPhone vía Sideloadly.

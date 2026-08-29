@@ -42,10 +42,12 @@ abstract class AppDatabase : RoomDatabase() {
                 ).addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         super.onCreate(db)
-                        // Pre-populate with initial data matching the user's design mockups
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val database = getInstance(context)
-                            prepopulateDatabase(database)
+                        // Pre-populate with initial data only in DEBUG mode
+                        if (com.example.BuildConfig.DEBUG) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                val database = getInstance(context)
+                                prepopulateDatabase(database)
+                            }
                         }
                     }
                 }).build()
