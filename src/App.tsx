@@ -10,22 +10,21 @@ import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import CreateInvoice from './pages/CreateInvoice';
+import RegisterClient from './pages/RegisterClient';
+import InvoicesList from './pages/InvoicesList';
 
 function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 0. Initialize Local Storage (80% Local Strategy)
     storage.initialize();
 
-    // 1. Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
     });
 
-    // 2. Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -49,9 +48,14 @@ function App() {
             <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Splash />} />
             <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* Protected Routes */}
             <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={session ? <Profile /> : <Navigate to="/login" replace />} />
             <Route path="/create-invoice" element={session ? <CreateInvoice /> : <Navigate to="/login" replace />} />
+            <Route path="/register-client" element={session ? <RegisterClient /> : <Navigate to="/login" replace />} />
+            <Route path="/invoices" element={session ? <InvoicesList /> : <Navigate to="/login" replace />} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
