@@ -41,7 +41,7 @@ jobs:
       - name: Build Android APK
         run: |
           npx cap sync android
-          cd android && chmod +x gradlew && ./gradlew assembleRelease
+          cd android && bash gradlew assembleRelease
 
       - name: Rename APK
         run: |
