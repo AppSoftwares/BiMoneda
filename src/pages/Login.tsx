@@ -20,7 +20,7 @@ const Login: React.FC = () => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'Credenciales inválidas. Por favor, verifica tu correo y contraseña.' : error.message);
+      setError(error.message === 'Invalid login credentials' ? 'Credenciales inválidas.' : error.message);
       setLoading(false);
     } else {
       navigate('/dashboard');
@@ -28,67 +28,65 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-screen bg-surface-bright dark:bg-primary flex flex-col items-center p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
-        <div className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center overflow-hidden mb-8 border border-gray-50 transform transition-all hover:rotate-3">
-          <img src="/logo-1024.png" alt="Logo" className="w-16 h-14 object-contain" />
+        <div className="w-28 h-28 bg-white rounded-4xl shadow-xl flex items-center justify-center overflow-hidden mb-10 border border-gray-50 transform transition-all hover:rotate-2">
+          <img src="/logo-1024.png" alt="Logo" className="w-20 h-18 object-contain" />
         </div>
 
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-black text-[#0B2545]">{t('login_title')}</h2>
-          <p className="text-gray-400 font-semibold mt-2">{t('login_subtitle')}</p>
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-black text-primary dark:text-white uppercase tracking-tight">{t('login_title')}</h2>
+          <p className="text-gray-400 font-bold mt-2 uppercase text-xs tracking-widest">{t('login_subtitle')}</p>
         </div>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
-          <div className="space-y-2">
-            <label className="text-[11px] font-black text-[#C99A32] uppercase ml-1 tracking-widest">{t('email_label')}</label>
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-[0.2em]">{t('email_label')}</label>
             <input
               type="email"
               placeholder="ejemplo@correo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white border border-gray-100 shadow-sm rounded-2xl px-6 py-4 text-sm text-[#0B2545] focus:ring-2 focus:ring-[#0B2545] outline-none transition-all"
+              className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-3xl px-6 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
               required
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[11px] font-black text-[#C99A32] uppercase ml-1 tracking-widest">{t('pass_label')}</label>
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-[0.2em]">{t('pass_label')}</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white border border-gray-100 shadow-sm rounded-2xl px-6 py-4 text-sm text-[#0B2545] focus:ring-2 focus:ring-[#0B2545] outline-none transition-all"
+                className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-3xl px-6 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0B2545]"
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
               >
                 {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                    <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                   </svg>
                 )}
               </button>
             </div>
           </div>
 
-          {error && <p className="text-red-500 text-[11px] text-center font-bold bg-red-50 p-3 rounded-xl border border-red-100">{error}</p>}
+          {error && <p className="text-red-500 text-[11px] text-center font-black bg-red-50 p-4 rounded-2xl border border-red-100 uppercase tracking-wider">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#0B2545] text-white font-black py-5 rounded-[24px] shadow-2xl shadow-blue-900/30 active:scale-[0.97] transition-all uppercase tracking-widest text-sm disabled:opacity-50"
+            className="w-full bg-primary text-white font-black py-5 rounded-3xl shadow-2xl shadow-blue-900/40 active:scale-[0.97] transition-all uppercase tracking-[0.2em] text-sm disabled:opacity-50 mt-4"
           >
             {loading ? '...' : t('btn_signin')}
           </button>
@@ -96,7 +94,7 @@ const Login: React.FC = () => {
 
         <button
           onClick={() => navigate('/forgot-password')}
-          className="mt-8 text-sm font-bold text-[#C99A32] hover:text-[#0B2545] transition-colors"
+          className="mt-10 text-xs font-black text-accent-gold hover:text-primary transition-colors uppercase tracking-[0.1em]"
         >
           {t('forgot_pass')}
         </button>

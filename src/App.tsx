@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { supabase } from './lib/supabaseClient';
 import { storage } from './services/StorageService';
 import Splash from './pages/Splash';
@@ -24,7 +25,7 @@ function App() {
       setLoading(false);
     });
 
-    // 2. Listen for auth state changes (login, logout, etc.)
+    // 2. Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -41,25 +42,21 @@ function App() {
   }
 
   return (
-    <LanguageProvider>
-      <Router>
-        <Routes>
-          {/* If logged in, "/" redirects to Dashboard. If not, shows Splash */}
-          <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Splash />} />
-
-          {/* Auth Routes */}
-          <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/profile" element={session ? <Profile /> : <Navigate to="/login" replace />} />
-          <Route path="/create-invoice" element={session ? <CreateInvoice /> : <Navigate to="/login" replace />} />
-
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={session ? <Navigate to="/dashboard" replace /> : <Splash />} />
+            <Route path="/login" element={session ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/profile" element={session ? <Profile /> : <Navigate to="/login" replace />} />
+            <Route path="/create-invoice" element={session ? <CreateInvoice /> : <Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
