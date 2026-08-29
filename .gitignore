@@ -6,3 +6,31 @@ dist/
 .DS_Store
 *.iml
 .gradle
+
+node_modules
+dist
+src/config/access_keys/
+# Secretos y llaves
+.env
+android/key.properties
+android/app/google-services.json
+*.jks
+
+# IDEs
+.idea
+*.png
+*.jpg
+*.jpeg
+*.pdf
+*.xlsx
+!assets/*.png
+!src/assets/*.png
+!src/assets/*.jpg
+!src/assets/*.jpeg
+residents/
+!src/assets/logo_premium.png
+
+# Permitir íconos y splash nativos de iOS/Android
+!ios/App/App/Assets.xcassets/**/*.png
+!android/app/src/main/res/**/*.png
+!android/app/src/main/res/**/*.webp
