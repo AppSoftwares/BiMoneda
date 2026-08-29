@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import CreateInvoice from './pages/CreateInvoice';
 import RegisterClient from './pages/RegisterClient';
 import InvoicesList from './pages/InvoicesList';
+import InvoicePreviewLegal from './pages/InvoicePreviewLegal';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -55,6 +56,7 @@ function App() {
             <Route path="/create-invoice" element={session ? <CreateInvoice /> : <Navigate to="/login" replace />} />
             <Route path="/register-client" element={session ? <RegisterClient /> : <Navigate to="/login" replace />} />
             <Route path="/invoices" element={session ? <InvoicesList /> : <Navigate to="/login" replace />} />
+            <Route path="/invoice/:id" element={session ? <InvoicePreviewLegal /> : <Navigate to="/login" replace />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

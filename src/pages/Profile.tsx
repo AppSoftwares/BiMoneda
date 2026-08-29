@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
+import BottomNav from '../components/BottomNav';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -176,6 +177,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
       )}
+      <BottomNav />
     </div>
   );
 };

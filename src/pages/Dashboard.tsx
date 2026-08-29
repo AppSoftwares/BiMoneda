@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
+import BottomNav from '../components/BottomNav';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -120,11 +121,15 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="bg-white dark:bg-white/5 rounded-[40px] border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden">
             {[
-              { name: "Acme Corp", date: "2023-11-15", amount: "$250.00", status: "Paid" },
-              { name: "VeneSoftware", date: "2023-11-14", amount: "$150.00", status: "Pending" },
-              { name: "TechServices Co", date: "2023-11-12", amount: "$400.00", status: "Paid" }
+              { id: '1', name: "Acme Corp", date: "2023-11-15", amount: "$250.00", status: "Paid" },
+              { id: '2', name: "VeneSoftware", date: "2023-11-14", amount: "$150.00", status: "Pending" },
+              { id: '3', name: "TechServices Co", date: "2023-11-12", amount: "$400.00", status: "Paid" }
             ].map((inv, i) => (
-              <div key={i} className={`p-6 flex justify-between items-center ${i !== 2 ? 'border-b border-gray-50 dark:border-white/5' : ''} active:bg-gray-50 dark:active:bg-white/5 transition-all`}>
+              <div
+                key={i}
+                onClick={() => navigate(`/invoice/${inv.id}`)}
+                className={`p-6 flex justify-between items-center ${i !== 2 ? 'border-b border-gray-50 dark:border-white/5' : ''} active:bg-gray-50 dark:active:bg-white/5 transition-all cursor-pointer`}
+              >
                 <div className="space-y-1">
                   <div className="font-black text-primary dark:text-white text-base tracking-tight">{inv.name}</div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
@@ -152,27 +157,7 @@ const Dashboard: React.FC = () => {
         </section>
       </main>
 
-      {/* Bottom Nav Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-primary border-t border-gray-100 dark:border-white/10 shadow-2xl h-24 px-6 flex justify-around items-center pb-safe">
-        <button onClick={() => navigate('/dashboard')} className="flex flex-col items-center gap-1 group">
-            <div className="bg-primary dark:bg-accent-gold p-3 rounded-2xl shadow-lg transform scale-110 transition-transform active:scale-100">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white dark:text-primary" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-            </div>
-            <span className="text-[10px] font-black text-primary dark:text-accent-gold uppercase tracking-[0.1em]">Home</span>
-        </button>
-        <button onClick={() => navigate('/invoices')} className="flex flex-col items-center gap-1 active:scale-90 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>
-            <span className="text-[10px] font-black text-primary dark:text-white uppercase tracking-[0.1em]">Invoices</span>
-        </button>
-        <button onClick={() => navigate('/register-client')} className="flex flex-col items-center gap-1 active:scale-90 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            <span className="text-[10px] font-black text-primary dark:text-white uppercase tracking-[0.1em]">Clients</span>
-        </button>
-        <button onClick={() => navigate('/profile')} className="flex flex-col items-center gap-1 active:scale-90 transition-all">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-primary dark:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            <span className="text-[10px] font-black text-primary dark:text-white uppercase tracking-[0.1em]">Settings</span>
-        </button>
-      </nav>
+      <BottomNav />
     </div>
   );
 };

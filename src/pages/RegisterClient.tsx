@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
+import BottomNav from '../components/BottomNav';
 
 const RegisterClient: React.FC = () => {
   const navigate = useNavigate();
@@ -116,6 +117,7 @@ const RegisterClient: React.FC = () => {
           {loading ? '...' : 'Registrar Cliente'}
         </button>
       </form>
+      <BottomNav />
     </div>
   );
 };

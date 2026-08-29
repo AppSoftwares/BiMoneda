@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
+import BottomNav from '../components/BottomNav';
 
 const InvoicesList: React.FC = () => {
   const navigate = useNavigate();
@@ -66,7 +67,11 @@ const InvoicesList: React.FC = () => {
           ) : filteredInvoices.length === 0 ? (
             <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No se encontraron facturas</div>
           ) : filteredInvoices.map((inv, i) => (
-            <div key={inv.id} className={`p-6 flex justify-between items-center ${i !== filteredInvoices.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''} active:bg-gray-50 dark:active:bg-white/5 transition-all`}>
+            <div
+                key={inv.id}
+                onClick={() => navigate(`/invoice/${inv.id}`)}
+                className={`p-6 flex justify-between items-center ${i !== filteredInvoices.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''} active:bg-gray-50 dark:active:bg-white/5 transition-all cursor-pointer`}
+            >
                 <div className="space-y-1">
                   <div className="font-black text-primary dark:text-white text-base tracking-tight">{inv.clients?.name || 'Cliente Desconocido'}</div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
@@ -92,6 +97,7 @@ const InvoicesList: React.FC = () => {
           ))}
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 };
