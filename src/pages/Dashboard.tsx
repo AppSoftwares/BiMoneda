@@ -44,8 +44,11 @@ const Dashboard: React.FC = () => {
 
       <div className="w-full max-w-md space-y-6">
         {/* Create Invoice Button */}
-        <button className="w-full bg-[#0B2545] text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all">
-          Create New Invoice
+        <button
+          onClick={() => navigate('/create-invoice')}
+          className="w-full bg-[#0B2545] text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all"
+        >
+          {t('btn_create_inv')}
         </button>
 
         {/* Monthly Revenue Section */}
