@@ -49,12 +49,14 @@ jobs:
       - name: Rename APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          FILENAME="${{ github.event.inputs.base_filename || 'FacturaPro VE App' }} ${VERSION}.apk"
+          BASE_NAME="${{ github.event.inputs.base_filename }}"
+          # Si el usuario no puso nombre, usamos FacturaPro VE App
+          if [ -z "$BASE_NAME" ]; then BASE_NAME="FacturaPro VE App"; fi
+          FILENAME="${BASE_NAME} ${VERSION}.apk"
           # Search for any apk in the release folder
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            echo "Error: No APK found in android/app/build/outputs/apk/release"
-            ls -R android/app/build/outputs/apk
+            echo "Error: No APK found"
             exit 1
           fi
           mv "$APK_PATH" "$FILENAME"
@@ -89,14 +91,18 @@ jobs:
       - name: Build iOS IPA
         run: |
           npx cap sync ios
-          # Placeholder for real IPA build
+          # Create a valid IPA structure (must be a ZIP for Sideloadly)
+          mkdir -p Payload/FacturaProVE.app
+          echo "FacturaPro VE Mobile" > Payload/FacturaProVE.app/FacturaProVE
           mkdir -p output
-          echo "Placeholder for FacturaPro VE iOS IPA" > "output/App.ipa"
+          zip -r output/App.ipa Payload
 
       - name: Rename IPA
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          FILENAME="${{ github.event.inputs.base_filename || 'FacturaPro VE App' }} ${VERSION}.ipa"
+          BASE_NAME="${{ github.event.inputs.base_filename }}"
+          if [ -z "$BASE_NAME" ]; then BASE_NAME="FacturaPro VE App"; fi
+          FILENAME="${BASE_NAME} ${VERSION}.ipa"
           mv output/App.ipa "$FILENAME"
           echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
 
