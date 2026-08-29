@@ -1,6 +1,12 @@
-name: Build and Release App
+name: iOS Build IPA
 
 on:
+  workflow_dispatch:
+    inputs:
+      base_filename:
+        description: 'Nombre del archivo base'
+        required: true
+        default: 'FacturaPro-VE'
   push:
     tags:
       - 'v*'
@@ -14,7 +20,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -41,13 +46,15 @@ jobs:
       - name: Rename APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          mv android/app/build/outputs/apk/release/app-release.apk "FacturaPro VE App ${VERSION}.apk"
+          FILENAME="${{ github.event.inputs.base_filename || 'FacturaPro VE App' }} ${VERSION}.apk"
+          mv android/app/build/outputs/apk/release/app-release.apk "$FILENAME"
+          echo "APK_FILENAME=$FILENAME" >> $GITHUB_ENV
 
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-release
-          path: "FacturaPro VE App *.apk"
+          path: "*.apk"
 
   build-ios:
     runs-on: macos-latest
@@ -57,7 +64,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -73,37 +79,49 @@ jobs:
       - name: Build iOS IPA
         run: |
           npx cap sync ios
-          # Note: Actual IPA building requires signing certificates and provisioning profiles
-          # This is a placeholder for the build command
-          # cd ios/App && xcodebuild -workspace App.xcworkspace -scheme App -archivePath App.xcarchive archive
-          # xcodebuild -exportArchive -archivePath App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath output
+          # Placeholder for real IPA build
+          mkdir -p output
+          touch "output/App.ipa" 
 
-      - name: Rename IPA (Placeholder)
+      - name: Rename IPA
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          # mv output/App.ipa "FacturaPro VE App ${VERSION}.ipa"
-          touch "FacturaPro VE App ${VERSION}.ipa" # Placeholder for demonstration
+          FILENAME="${{ github.event.inputs.base_filename || 'FacturaPro VE App' }} ${VERSION}.ipa"
+          mv output/App.ipa "$FILENAME"
+          echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
 
       - name: Upload iOS Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-release
-          path: "FacturaPro VE App *.ipa"
+          path: "*.ipa"
 
   create-release:
     needs: [build-android, build-ios]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
 
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: "FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}"
+          tag_name: "v${{ steps.get_version.outputs.VERSION }}"
           files: |
-            android-release/FacturaPro VE App *.apk
-            ios-release/FacturaPro VE App *.ipa
+            android-release/*.apk
+            ios-release/*.ipa
+          body: |
+            Actualización FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}
+            
+            Notas de lanzamiento:
+            ${{ github.event.head_commit.message }}
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
