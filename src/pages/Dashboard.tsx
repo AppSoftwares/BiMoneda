@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { useLanguage } from '../context/LanguageContext';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [dbStatus, setDbStatus] = useState<'Checking...' | 'Connected' | 'Error'>('Checking...');
 
   useEffect(() => {
