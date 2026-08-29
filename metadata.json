@@ -1,0 +1,8 @@
+{
+  "name": "FacturaPro VE",
+  "description": "Sistema de Facturación Digital y Gestión de Suscripciones en Venezuela con conversión USD/Bs, tasa oficial BCV, clientes y formato legal SENIAT.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
