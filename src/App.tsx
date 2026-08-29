@@ -1,12 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from './lib/supabaseClient';
 
 function App() {
+  const [dbStatus, setDbStatus] = useState<'Checking...' | 'Connected' | 'Error'>('Checking...');
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const { error } = await supabase.from('invoices').select('count', { count: 'exact', head: true });
+        if (error) throw error;
+        setDbStatus('Connected');
+      } catch (err) {
+        console.error('Supabase connection error:', err);
+        setDbStatus('Error');
+      }
+    };
+
+    checkConnection();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center p-6 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Header Profile Section */}
       <div className="w-full max-w-md flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-[#006495]">Provider Dashboard</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <div className={`w-2 h-2 rounded-full ${dbStatus === 'Connected' ? 'bg-green-500' : 'bg-amber-500'}`}></div>
+            <span className="text-[10px] text-gray-500">Database: {dbStatus}</span>
+          </div>
         </div>
         <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
