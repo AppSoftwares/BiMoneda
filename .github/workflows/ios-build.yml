@@ -1,0 +1,109 @@
+name: Build and Release App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Web
+        run: pnpm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build Android APK
+        run: |
+          npx cap sync android
+          cd android && ./gradlew assembleRelease
+
+      - name: Rename APK
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          mv android/app/build/outputs/apk/release/app-release.apk "FacturaPro VE App ${VERSION}.apk"
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: "FacturaPro VE App *.apk"
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Web
+        run: pnpm run build
+
+      - name: Build iOS IPA
+        run: |
+          npx cap sync ios
+          # Note: Actual IPA building requires signing certificates and provisioning profiles
+          # This is a placeholder for the build command
+          # cd ios/App && xcodebuild -workspace App.xcworkspace -scheme App -archivePath App.xcarchive archive
+          # xcodebuild -exportArchive -archivePath App.xcarchive -exportOptionsPlist exportOptions.plist -exportPath output
+
+      - name: Rename IPA (Placeholder)
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          # mv output/App.ipa "FacturaPro VE App ${VERSION}.ipa"
+          touch "FacturaPro VE App ${VERSION}.ipa" # Placeholder for demonstration
+
+      - name: Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: "FacturaPro VE App *.ipa"
+
+  create-release:
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            android-release/FacturaPro VE App *.apk
+            ios-release/FacturaPro VE App *.ipa
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

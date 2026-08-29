@@ -1,0 +1,8 @@
+{
+  "appId": "com.aistudio.facturapro.fjrsll",
+  "appName": "FacturaPro VE",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
