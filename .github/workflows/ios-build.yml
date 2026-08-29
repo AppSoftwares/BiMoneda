@@ -47,7 +47,14 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           FILENAME="${{ github.event.inputs.base_filename || 'FacturaPro VE App' }} ${VERSION}.apk"
-          mv android/app/build/outputs/apk/release/app-release.apk "$FILENAME"
+          # Search for any apk in the release folder
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "Error: No APK found in android/app/build/outputs/apk/release"
+            ls -R android/app/build/outputs/apk
+            exit 1
+          fi
+          mv "$APK_PATH" "$FILENAME"
           echo "APK_FILENAME=$FILENAME" >> $GITHUB_ENV
 
       - name: Upload Android Artifact
