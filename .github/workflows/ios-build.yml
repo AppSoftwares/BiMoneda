@@ -5,11 +5,6 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      base_filename:
-        description: 'Nombre del archivo base'
-        required: true
-        default: 'FacturaPro-VE'
   push:
     tags:
       - 'v*'
@@ -49,13 +44,8 @@ jobs:
       - name: Rename APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          # Hardcoding the name format as requested: FacturaPro VE App [versión]
           FILENAME="FacturaPro VE App ${VERSION}.apk"
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            echo "Error: No APK found"
-            exit 1
-          fi
           mv "$APK_PATH" "$FILENAME"
           echo "APK_FILENAME=$FILENAME" >> $GITHUB_ENV
 
@@ -85,52 +75,24 @@ jobs:
       - name: Build Web
         run: pnpm run build
 
-      - name: Build iOS IPA
+      - name: Build iOS App
         run: |
           npx cap sync ios
-          VERSION=$(node -p "require('./package.json').version")
-          # Create a valid minimal IPA structure for Sideloadly
-          mkdir -p Payload/FacturaProVE.app
+          cd ios/App
+          # Build unsigned app bundle
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -derivedDataPath build
           
-          # Create a minimal Info.plist
-          cat <<EOF > Payload/FacturaProVE.app/Info.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>CFBundleExecutable</key>
-            <string>FacturaProVE</string>
-            <key>CFBundleIdentifier</key>
-            <string>com.aistudio.facturapro.fjrsll</string>
-            <key>CFBundleInfoDictionaryVersion</key>
-            <string>6.0</string>
-            <key>CFBundleName</key>
-            <string>FacturaProVE</string>
-            <key>CFBundlePackageType</key>
-            <string>APPL</string>
-            <key>CFBundleShortVersionString</key>
-            <string>${VERSION}</string>
-            <key>CFBundleVersion</key>
-            <string>1</string>
-            <key>LSRequiresIPhoneOS</key>
-            <true/>
-          </dict>
-          </plist>
-          EOF
-          
-          # Create a dummy binary
-          echo "FacturaPro VE Mobile Binary" > Payload/FacturaProVE.app/FacturaProVE
-          chmod +x Payload/FacturaProVE.app/FacturaProVE
-          
-          mkdir -p output
-          zip -r output/App.ipa Payload
+          # Create IPA structure
+          mkdir -p ../../Payload
+          cp -r build/Build/Products/Release-iphoneos/App.app ../../Payload/
+          cd ../..
+          zip -r "FacturaPro VE App.ipa" Payload
 
       - name: Rename IPA
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          # Hardcoding the name format as requested: FacturaPro VE App [versión]
           FILENAME="FacturaPro VE App ${VERSION}.ipa"
-          mv output/App.ipa "$FILENAME"
+          mv "FacturaPro VE App.ipa" "$FILENAME"
           echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
 
       - name: Upload iOS Artifact
@@ -149,7 +111,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
 
@@ -166,10 +127,9 @@ jobs:
             android-release/*.apk
             ios-release/*.ipa
           body: |
-            Actualización FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}
+            Lanzamiento FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}
             
-            Notas de lanzamiento:
-            ${{ github.event.head_commit.message }}
+            Este archivo .ipa está listo para ser firmado e instalado mediante Sideloadly.
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
