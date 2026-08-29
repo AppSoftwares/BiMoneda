@@ -1,6 +1,7 @@
 {
   "name": "factura-pro-ve",
   "version": "1.0.1",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "vite",
