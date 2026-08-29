@@ -1,36 +1,60 @@
+# Dependencies
 node_modules/
+.pnpm-debug.log*
+
+# Build outputs
 dist/
+/build
+/captures
+
+# Environment variables & Secrets
 .env
+.env.local
 .env.test
 .env.production
-.DS_Store
-*.iml
-.gradle
-
-node_modules
-dist
-src/config/access_keys/
-# Secretos y llaves
-.env
+.env.*.local
 android/key.properties
 android/app/google-services.json
+ios/App/App/google-services.json
 *.jks
+debug.keystore
 
-# IDEs
-.idea
+# IDEs & System files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Android/Gradle specific (even if root is clean, Capacitor uses these)
+.gradle/
+.kotlin/
+/local.properties
+.externalNativeBuild
+.cxx
+
+# Assets management
 *.png
 *.jpg
 *.jpeg
 *.pdf
 *.xlsx
-!assets/*.png
-!src/assets/*.png
-!src/assets/*.jpg
-!src/assets/*.jpeg
-residents/
-!src/assets/logo_premium.png
+!assets/**
+!src/assets/**
+!public/**
+!**/*.png
+!**/*.webp
+!**/*.jpg
+!**/*.jpeg
+!**/*.svg
 
-# Permitir íconos y splash nativos de iOS/Android
-!ios/App/App/Assets.xcassets/**/*.png
-!android/app/src/main/res/**/*.png
-!android/app/src/main/res/**/*.webp
+# Allow essential Native Icons/Splash
+!ios/App/App/Assets.xcassets/**
+!android/app/src/main/res/**
+
+# Temporary/Scratch files
+repomix-output.xml
+revision_seguridad.artifact.txt
+.artifacts/
+scratch/
