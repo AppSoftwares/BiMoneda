@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { supabase } from './lib/supabaseClient';
+import { storage } from './services/StorageService';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
@@ -14,6 +15,9 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 0. Initialize Local Storage (80% Local Strategy)
+    storage.initialize();
+
     // 1. Check current session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
