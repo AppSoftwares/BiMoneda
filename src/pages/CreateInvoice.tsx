@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useLanguage } from '../context/LanguageContext';
+import BottomNav from '../components/BottomNav';
 
 const CreateInvoice: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ const CreateInvoice: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-bright dark:bg-[#050c1a] transition-colors pb-32">
+    <div className="min-h-screen bg-surface-bright dark:bg-[#050c1a] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors flex flex-col">
       <header className="sticky top-0 z-40 bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary dark:text-white active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,7 +74,7 @@ const CreateInvoice: React.FC = () => {
         <div className="w-10"></div>
       </header>
 
-      <main className="p-6 space-y-8 max-w-md mx-auto">
+      <main className="flex-1 p-6 space-y-8 max-w-md mx-auto pb-32">
         <div className="space-y-6">
             <div className="space-y-3">
                 <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">Seleccionar Cliente</label>
@@ -142,6 +143,7 @@ const CreateInvoice: React.FC = () => {
           {loading ? 'Procesando...' : 'Emitir Factura Legal'}
         </button>
       </main>
+      <BottomNav />
     </div>
   );
 };

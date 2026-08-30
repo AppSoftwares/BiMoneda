@@ -41,14 +41,13 @@ const Profile: React.FC = () => {
       const fileName = `${user?.id}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Check if bucket exists via metadata request (simulated)
       const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, file);
 
       if (uploadError) {
         if (uploadError.message.includes('bucket not found')) {
-            throw new Error('El contenedor "profiles" no existe en Supabase Storage. Por favor, créalo como Público.');
+            throw new Error('El contenedor "profiles" no existe en Supabase Storage.');
         }
         throw uploadError;
       }
@@ -80,7 +79,7 @@ const Profile: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-surface-bright dark:bg-[#050c1a] transition-colors pb-32">
+    <div className="min-h-screen bg-surface-bright dark:bg-[#050c1a] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors flex flex-col">
       {/* Header */}
       <header className="bg-white dark:bg-primary sticky top-0 z-40 border-b border-gray-100 dark:border-white/10 px-6 py-5 flex items-center justify-between shadow-sm">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary dark:text-white active:scale-90 transition-transform">
@@ -92,14 +91,14 @@ const Profile: React.FC = () => {
         <div className="w-10"></div>
       </header>
 
-      <main className="p-6 space-y-10 max-w-md mx-auto">
+      <main className="flex-1 p-6 space-y-10 max-w-md mx-auto pb-32">
         {/* User Profile Info */}
         <div className="flex flex-col items-center">
             <div className="relative cursor-pointer group" onClick={() => fileInputRef.current?.click()}>
                 <div className="w-32 h-32 rounded-full border-4 border-accent-gold p-1 shadow-2xl bg-white overflow-hidden transform group-active:scale-95 transition-all">
                     <img src={avatarUrl || "/logo-1024.png"} alt="Avatar" className={`w-full h-full object-cover rounded-full ${loading ? 'animate-pulse opacity-50' : ''}`} />
                 </div>
-                <div className="absolute bottom-1 right-1 w-10 h-10 bg-accent-gold rounded-full border-4 border-white flex items-center justify-center shadow-lg">
+                <div className="absolute bottom-1 right-1 w-10 h-10 bg-accent-gold rounded-full border-4 border-white flex items-center justify-center shadow-lg transition-transform group-active:scale-90">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                     </svg>
@@ -118,16 +117,16 @@ const Profile: React.FC = () => {
         <div className="space-y-3">
           <GroupTitle>{t('appearance_theme')}</GroupTitle>
           <div className="bg-white dark:bg-white/5 rounded-4xl shadow-sm border border-gray-100 dark:border-white/10 overflow-hidden">
-            <SettingRow label="Modo Visual">
+            <SettingRow label={t('appearance_theme')}>
               <div className="flex bg-gray-100 dark:bg-white/10 p-1.5 rounded-2xl">
                 <button
                   onClick={() => theme !== 'light' && toggleTheme()}
                   className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${theme === 'light' ? 'bg-white text-primary shadow-md' : 'text-gray-400'}`}
-                >Light</button>
+                >{t('theme_light')}</button>
                 <button
                   onClick={() => theme !== 'dark' && toggleTheme()}
                   className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${theme === 'dark' ? 'bg-primary text-white shadow-md' : 'text-gray-400'}`}
-                >Dark</button>
+                >{t('theme_dark')}</button>
               </div>
             </SettingRow>
             <SettingRow label={t('lang_label')} isLast>

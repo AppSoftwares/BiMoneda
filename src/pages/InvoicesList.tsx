@@ -35,27 +35,27 @@ const InvoicesList: React.FC = () => {
     : invoices.filter(inv => inv.status === filter);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#050c1a] transition-colors pb-32">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#050c1a] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors flex flex-col">
       <header className="sticky top-0 z-40 bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary dark:text-white active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">{t('recent_inv')}</h1>
+        <h1 className="text-xl font-black text-primary dark:text-white uppercase tracking-tight">{t('recent_inv')}</h1>
         <div className="w-10"></div>
       </header>
 
-      <main className="p-6 space-y-6 max-w-md mx-auto">
+      <main className="flex-1 p-6 space-y-6 max-w-md mx-auto pb-32">
         {/* Filters */}
-        <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm overflow-x-auto gap-2">
+        <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm overflow-x-auto gap-2 no-scrollbar">
             {['all', 'PAID', 'PENDING', 'CANCELLED'].map(f => (
                 <button
                     key={f}
                     onClick={() => setFilter(f)}
                     className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all whitespace-nowrap ${filter === f ? 'bg-primary text-white shadow-lg' : 'text-gray-400'}`}
                 >
-                    {f === 'all' ? 'Todos' : f}
+                    {f === 'all' ? t('all_filters') : t(`status_${f.toLowerCase()}`)}
                 </button>
             ))}
         </div>
@@ -63,9 +63,9 @@ const InvoicesList: React.FC = () => {
         {/* List */}
         <div className="bg-white dark:bg-white/5 rounded-[40px] border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden">
           {loading ? (
-            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando facturas...</div>
+            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px] animate-pulse">{t('loading_invoices')}</div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No se encontraron facturas</div>
+            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('no_invoices')}</div>
           ) : filteredInvoices.map((inv, i) => (
             <div
                 key={inv.id}
@@ -77,7 +77,7 @@ const InvoicesList: React.FC = () => {
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
                     <span>#INV-{inv.invoice_number}</span>
                     <span className="text-gray-200">|</span>
-                    <span className={inv.status === 'PAID' ? 'text-blue-500' : 'text-accent-gold'}>{inv.status}</span>
+                    <span className={inv.status === 'PAID' ? 'text-blue-500' : 'text-accent-gold'}>{t(`status_${inv.status.toLowerCase()}`)}</span>
                     <span className="text-gray-200">|</span>
                     <span className="text-primary dark:text-white/70 font-black">${inv.total_usd.toFixed(2)}</span>
                   </div>
