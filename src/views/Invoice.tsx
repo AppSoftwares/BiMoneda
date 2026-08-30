@@ -81,7 +81,7 @@ const Invoice: React.FC = () => {
                    <img src={company?.logo_url || "/logo-1024.png"} alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
-                   <h1 className="text-xl font-black text-primary uppercase leading-tight">{company?.name || 'FIORA ENTERPRISE S.A.'}</h1>
+                   <h1 className="text-xl font-black text-primary uppercase leading-tight">{company?.name || 'BIMONEDA S.A.'}</h1>
                    <p className="text-[10px] font-bold text-accent-gold uppercase tracking-[0.2em]">Factura Flow Pro</p>
                 </div>
               </div>
@@ -89,7 +89,7 @@ const Invoice: React.FC = () => {
                 RIF: {company?.rif || 'J-00000000-0'}<br/>
                 {company?.address || 'Dirección de la empresa'}<br/>
                 Teléfono: {company?.phone || '0000-0000000'}<br/>
-                Email: {company?.email || 'admin@fiora.app'}
+                Email: {company?.email || 'admin@bimoneda.app'}
               </div>
             </div>
 

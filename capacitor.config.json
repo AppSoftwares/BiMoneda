@@ -1,6 +1,6 @@
 {
-  "appId": "com.fiora.app",
-  "appName": "Fiora",
+  "appId": "com.bimoneda.app",
+  "appName": "BiMoneda",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

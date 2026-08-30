@@ -6,7 +6,7 @@ class StorageService {
 
   async initialize() {
     try {
-      this.db = await this.sqlite.createConnection('facturapro_local', false, 'no-encryption', 1, false);
+      this.db = await this.sqlite.createConnection('bimoneda_local', false, 'no-encryption', 1, false);
       await this.db.open();
 
       // Schema for local 80% processing

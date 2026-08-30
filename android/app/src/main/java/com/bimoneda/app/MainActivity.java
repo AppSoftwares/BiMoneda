@@ -1,4 +1,4 @@
-package com.fiora.app;
+package com.bimoneda.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -35,7 +35,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-black text-primary dark:text-white uppercase tracking-tighter italic">Fiora</h2>
+          <h2 className="text-4xl font-black text-primary dark:text-white uppercase tracking-tighter italic">BiMoneda</h2>
           <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-[0.3em]">{t('login_title')}</p>
         </div>
 

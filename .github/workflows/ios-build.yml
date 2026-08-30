@@ -44,7 +44,7 @@ jobs:
       - name: Rename APK
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          FILENAME="FacturaPro VE App ${VERSION}.apk"
+          FILENAME="BiMoneda App ${VERSION}.apk"
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           mv "$APK_PATH" "$FILENAME"
           echo "APK_FILENAME=$FILENAME" >> $GITHUB_ENV
@@ -86,13 +86,13 @@ jobs:
           mkdir -p ../../Payload
           cp -r build/Build/Products/Release-iphoneos/App.app ../../Payload/
           cd ../..
-          zip -r "FacturaPro VE App.ipa" Payload
+          zip -r "BiMoneda App.ipa" Payload
 
       - name: Rename IPA
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          FILENAME="FacturaPro VE App ${VERSION}.ipa"
-          mv "FacturaPro VE App.ipa" "$FILENAME"
+          FILENAME="BiMoneda App ${VERSION}.ipa"
+          mv "BiMoneda App.ipa" "$FILENAME"
           echo "IPA_FILENAME=$FILENAME" >> $GITHUB_ENV
 
       - name: Upload iOS Artifact
@@ -121,13 +121,13 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}"
+          name: "BiMoneda App v${{ steps.get_version.outputs.VERSION }}"
           tag_name: "v${{ steps.get_version.outputs.VERSION }}"
           files: |
             android-release/*.apk
             ios-release/*.ipa
           body: |
-            Lanzamiento FacturaPro VE App v${{ steps.get_version.outputs.VERSION }}
+            Lanzamiento BiMoneda App v${{ steps.get_version.outputs.VERSION }}
             
             Este archivo .ipa está listo para ser firmado e instalado mediante Sideloadly.
           generate_release_notes: true

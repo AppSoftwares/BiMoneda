@@ -37,7 +37,7 @@ const ForgotPassword: React.FC = () => {
         </div>
 
         <div className="text-center mb-12 px-4">
-          <h2 className="text-3xl font-black text-primary dark:text-white uppercase tracking-tighter italic">Fiora</h2>
+          <h2 className="text-3xl font-black text-primary dark:text-white uppercase tracking-tighter italic">BiMoneda</h2>
           <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-[0.25em]">{t('rec_title')}</p>
         </div>
 

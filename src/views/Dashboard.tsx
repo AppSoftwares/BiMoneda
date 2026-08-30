@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
       {/* Top Bar */}
       <header className="bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
         <div className="flex flex-col">
-            <h1 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">Fiora Dashboard</h1>
+            <h1 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">BiMoneda Dashboard</h1>
             <div className="flex items-center gap-2 mt-1">
                 <div className={`w-2 h-2 rounded-full ${dbStatus === 'Connected' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{dbStatus}</span>

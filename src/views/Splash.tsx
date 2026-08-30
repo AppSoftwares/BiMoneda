@@ -11,15 +11,15 @@ const Splash: React.FC = () => {
     <div className="min-h-screen bg-surface-bright dark:bg-primary flex flex-col items-center justify-center p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm -mt-20">
         <div className="w-48 h-48 bg-white rounded-5xl shadow-2xl flex items-center justify-center overflow-hidden mb-10 border border-gray-50 transform hover:scale-105 transition-transform duration-500">
-           <img src="/logo-1024.png" alt="Fiora" className="w-40 h-36 object-contain" />
+           <img src="/logo-1024.png" alt="BiMoneda" className="w-40 h-36 object-contain" />
         </div>
         <span className="text-sm font-black text-accent-gold tracking-[0.3em] uppercase mb-12">versión {version}</span>
 
         <h1 className="text-5xl font-black text-primary dark:text-white leading-[1] text-center mb-6 tracking-tighter italic">
-          Fiora
+          BiMoneda
         </h1>
         <p className="text-xl font-black text-primary dark:text-white uppercase tracking-widest text-center mb-6 opacity-80">
-          Factura Flow
+          Smart Finance
         </p>
 
         <div className="w-24 h-2.5 bg-accent-gold rounded-full mb-12 shadow-sm"></div>
