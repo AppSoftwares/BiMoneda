@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 
 const Login: React.FC = () => {
@@ -30,13 +30,13 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface-bright dark:bg-primary flex flex-col items-center p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm">
-        <div className="w-28 h-28 bg-white rounded-4xl shadow-xl flex items-center justify-center overflow-hidden mb-10 border border-gray-50 transform transition-all hover:rotate-2">
-          <img src="/logo-1024.png" alt="Logo" className="w-20 h-18 object-contain" />
+        <div className="w-32 h-32 bg-white rounded-5xl shadow-2xl flex items-center justify-center overflow-hidden mb-12 border border-gray-50 transform transition-all hover:rotate-2">
+          <img src="/logo-1024.png" alt="Logo" className="w-24 h-20 object-contain" />
         </div>
 
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-black text-primary dark:text-white uppercase tracking-tight">{t('login_title')}</h2>
-          <p className="text-gray-400 font-bold mt-2 uppercase text-xs tracking-widest">{t('login_subtitle')}</p>
+          <h2 className="text-4xl font-black text-primary dark:text-white uppercase tracking-tighter italic">Fiora</h2>
+          <p className="text-gray-400 font-bold mt-2 uppercase text-[10px] tracking-[0.3em]">{t('login_title')}</p>
         </div>
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
@@ -47,7 +47,7 @@ const Login: React.FC = () => {
               placeholder="ejemplo@correo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-3xl px-6 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
+              className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-[28px] px-8 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
               required
             />
           </div>
@@ -60,13 +60,13 @@ const Login: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-3xl px-6 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
+                className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 shadow-sm rounded-[28px] px-8 py-5 text-sm text-primary dark:text-white focus:ring-4 focus:ring-primary/20 outline-none transition-all placeholder:text-gray-300"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
+                className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
               >
                 {showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-black py-5 rounded-3xl shadow-2xl shadow-blue-900/40 active:scale-[0.97] transition-all uppercase tracking-[0.2em] text-sm disabled:opacity-50 mt-4"
+            className="w-full bg-primary text-white font-black py-6 rounded-[32px] shadow-2xl shadow-blue-900/50 active:scale-[0.97] transition-all uppercase tracking-[0.25em] text-sm disabled:opacity-50 mt-6"
           >
             {loading ? '...' : t('btn_signin')}
           </button>
@@ -94,7 +94,7 @@ const Login: React.FC = () => {
 
         <button
           onClick={() => navigate('/forgot-password')}
-          className="mt-10 text-xs font-black text-accent-gold hover:text-primary transition-colors uppercase tracking-[0.1em]"
+          className="mt-12 text-[10px] font-black text-accent-gold hover:text-primary transition-colors uppercase tracking-[0.2em]"
         >
           {t('forgot_pass')}
         </button>

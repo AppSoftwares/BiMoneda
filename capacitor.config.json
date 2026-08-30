@@ -1,6 +1,6 @@
 {
-  "appId": "com.aistudio.facturapro.fjrsll",
-  "appName": "FacturaPro VE",
+  "appId": "com.fiora.app",
+  "appName": "Fiora",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

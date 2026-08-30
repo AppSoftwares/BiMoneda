@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
 
@@ -33,7 +33,7 @@ const Dashboard: React.FC = () => {
       {/* Top Bar */}
       <header className="bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
         <div className="flex flex-col">
-            <h1 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">{t('dash_title')}</h1>
+            <h1 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">Fiora Dashboard</h1>
             <div className="flex items-center gap-2 mt-1">
                 <div className={`w-2 h-2 rounded-full ${dbStatus === 'Connected' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></div>
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{dbStatus}</span>
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
 
       <main className="flex-1 p-6 space-y-10 max-w-md mx-auto pb-32">
         <button
-          onClick={() => navigate('/create-invoice')}
+          onClick={() => navigate('/add-invoice')}
           className="w-full bg-primary text-white font-black py-5 rounded-[24px] shadow-2xl shadow-blue-900/40 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-sm"
         >
           {t('btn_create_inv')}

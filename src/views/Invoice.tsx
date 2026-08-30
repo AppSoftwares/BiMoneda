@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 
-const InvoicePreviewLegal: React.FC = () => {
+const Invoice: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [invoice, setInvoice] = useState<any>(null);
@@ -60,7 +60,7 @@ const InvoicePreviewLegal: React.FC = () => {
       <main className="p-4 md:p-8 max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-6 md:p-10 relative overflow-hidden">
 
-          {/* Sello de Validación (Watermark style if needed, but here a real component) */}
+          {/* Sello de Validación */}
           {invoice.status === 'PAID' && (
             <div className="absolute top-40 right-[-40px] rotate-45 z-0 opacity-10 pointer-events-none">
                <div className="flex flex-col items-center border-4 border-primary p-4 rounded-full">
@@ -81,15 +81,15 @@ const InvoicePreviewLegal: React.FC = () => {
                    <img src={company?.logo_url || "/logo-1024.png"} alt="Logo" className="w-full h-full object-contain" />
                 </div>
                 <div>
-                   <h1 className="text-xl font-black text-primary uppercase leading-tight">{company?.name || 'EMPRESA EJEMPLO S.A.'}</h1>
-                   <p className="text-[10px] font-bold text-accent-gold uppercase tracking-[0.2em]">Facturación Digital Pro</p>
+                   <h1 className="text-xl font-black text-primary uppercase leading-tight">{company?.name || 'FIORA ENTERPRISE S.A.'}</h1>
+                   <p className="text-[10px] font-bold text-accent-gold uppercase tracking-[0.2em]">Factura Flow Pro</p>
                 </div>
               </div>
               <div className="text-[11px] font-medium text-gray-500 leading-relaxed uppercase tracking-wider">
                 RIF: {company?.rif || 'J-00000000-0'}<br/>
                 {company?.address || 'Dirección de la empresa'}<br/>
                 Teléfono: {company?.phone || '0000-0000000'}<br/>
-                Email: {company?.email || 'admin@facturapro.ve'}
+                Email: {company?.email || 'admin@fiora.app'}
               </div>
             </div>
 
@@ -117,7 +117,7 @@ const InvoicePreviewLegal: React.FC = () => {
             </div>
           </div>
 
-          {/* Sello de Validez Legal (Blue Band style) */}
+          {/* Sello de Validez Legal */}
           <div className="mb-10 bg-primary/5 border border-primary/10 rounded-2xl p-6 relative z-10">
              <div className="flex items-center gap-6">
                 <div className="w-14 h-14 bg-gradient-to-br from-accent-gold to-accent-gold-light rounded-full flex items-center justify-center shadow-lg shadow-amber-900/20">
@@ -218,4 +218,4 @@ const InvoicePreviewLegal: React.FC = () => {
   );
 };
 
-export default InvoicePreviewLegal;
+export default Invoice;

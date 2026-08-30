@@ -2,20 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { supabase } from './lib/supabaseClient';
+import { supabase } from './lib/db';
 import { storage } from './services/StorageService';
-import Splash from './pages/Splash';
-import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import Profile from './pages/Profile';
-import Dashboard from './pages/Dashboard';
-import CreateInvoice from './pages/CreateInvoice';
-import RegisterClient from './pages/RegisterClient';
-import InvoicesList from './pages/InvoicesList';
-import InvoicePreviewLegal from './pages/InvoicePreviewLegal';
-import CryptoP2P from './pages/CryptoP2P';
-import RegisterCryptoOp from './pages/RegisterCryptoOp';
-import AccountingBooks from './pages/AccountingBooks';
+import Splash from './views/Splash';
+import Login from './views/Login';
+import ForgotPassword from './views/ForgotPassword';
+import Profile from './views/Profile';
+import Dashboard from './views/Dashboard';
+import AddInvoice from './views/AddInvoice';
+import AddClient from './views/AddClient';
+import Invoices from './views/Invoices';
+import Invoice from './views/Invoice';
+import Crypto from './views/Crypto';
+import AddCrypto from './views/AddCrypto';
+import Books from './views/Books';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -56,15 +56,15 @@ function App() {
             {/* Protected Routes */}
             <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={session ? <Profile /> : <Navigate to="/login" replace />} />
-            <Route path="/create-invoice" element={session ? <CreateInvoice /> : <Navigate to="/login" replace />} />
-            <Route path="/register-client" element={session ? <RegisterClient /> : <Navigate to="/login" replace />} />
-            <Route path="/invoices" element={session ? <InvoicesList /> : <Navigate to="/login" replace />} />
-            <Route path="/invoice/:id" element={session ? <InvoicePreviewLegal /> : <Navigate to="/login" replace />} />
+            <Route path="/add-invoice" element={session ? <AddInvoice /> : <Navigate to="/login" replace />} />
+            <Route path="/add-client" element={session ? <AddClient /> : <Navigate to="/login" replace />} />
+            <Route path="/invoices" element={session ? <Invoices /> : <Navigate to="/login" replace />} />
+            <Route path="/invoice/:id" element={session ? <Invoice /> : <Navigate to="/login" replace />} />
 
             {/* Crypto Module */}
-            <Route path="/crypto-p2p" element={session ? <CryptoP2P /> : <Navigate to="/login" replace />} />
-            <Route path="/register-crypto" element={session ? <RegisterCryptoOp /> : <Navigate to="/login" replace />} />
-            <Route path="/accounting-books" element={session ? <AccountingBooks /> : <Navigate to="/login" replace />} />
+            <Route path="/crypto" element={session ? <Crypto /> : <Navigate to="/login" replace />} />
+            <Route path="/add-crypto" element={session ? <AddCrypto /> : <Navigate to="/login" replace />} />
+            <Route path="/books" element={session ? <Books /> : <Navigate to="/login" replace />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

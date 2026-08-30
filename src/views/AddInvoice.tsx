@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
 
-const CreateInvoice: React.FC = () => {
+const AddInvoice: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -138,7 +138,7 @@ const CreateInvoice: React.FC = () => {
         <button
           onClick={handleCreate}
           disabled={loading}
-          className="w-full bg-[#0B2545] text-white font-black py-6 rounded-[32px] shadow-2xl shadow-blue-900/40 active:scale-[0.98] transition-all uppercase tracking-[0.25em] text-sm disabled:opacity-50 mt-4"
+          className="w-full bg-primary text-white font-black py-6 rounded-[32px] shadow-2xl shadow-blue-900/40 active:scale-[0.98] transition-all uppercase tracking-[0.25em] text-sm disabled:opacity-50 mt-4"
         >
           {loading ? 'Procesando...' : 'Emitir Factura Legal'}
         </button>
@@ -148,4 +148,4 @@ const CreateInvoice: React.FC = () => {
   );
 };
 
-export default CreateInvoice;
+export default AddInvoice;

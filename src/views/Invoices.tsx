@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
 
-const InvoicesList: React.FC = () => {
+const Invoices: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -102,4 +102,4 @@ const InvoicesList: React.FC = () => {
   );
 };
 
-export default InvoicesList;
+export default Invoices;

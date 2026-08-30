@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { accounting } from '../services/AccountingService';
 import { useLanguage } from '../context/LanguageContext';
+import BottomNav from '../components/BottomNav';
 
-const RegisterCryptoOp: React.FC = () => {
+const AddCrypto: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const RegisterCryptoOp: React.FC = () => {
         feeBs: Number(formData.feeBs)
       });
       alert('Operación contable registrada con éxito');
-      navigate('/crypto-p2p');
+      navigate('/crypto');
     } catch (err: any) {
       alert('Error: ' + err.message);
     } finally {
@@ -51,7 +52,7 @@ const RegisterCryptoOp: React.FC = () => {
         <div className="w-10"></div>
       </header>
 
-      <main className="flex-1 p-6 max-w-md mx-auto w-full">
+      <main className="flex-1 p-6 max-w-md mx-auto w-full pb-32">
         <form onSubmit={handleSave} className="space-y-8">
             <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm">
                 <button
@@ -118,8 +119,9 @@ const RegisterCryptoOp: React.FC = () => {
             </button>
         </form>
       </main>
+      <BottomNav />
     </div>
   );
 };
 
-export default RegisterCryptoOp;
+export default AddCrypto;

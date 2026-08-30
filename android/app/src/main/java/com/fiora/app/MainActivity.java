@@ -1,4 +1,4 @@
-package com.aistudio.facturapro.fjrsll;
+package com.fiora.app;
 
 import com.getcapacitor.BridgeActivity;
 

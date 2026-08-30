@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
 
-const RegisterClient: React.FC = () => {
+const AddClient: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -20,12 +20,13 @@ const RegisterClient: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Removing 'is_active' as it might not exist in user's schema yet
+      // is_active column should be created in Supabase first
       const { error } = await supabase.from('clients').insert([{
         name: formData.name,
         rif: formData.rif,
         email: formData.email,
-        phone: formData.phone
+        phone: formData.phone,
+        is_active: true
       }]);
       if (error) throw error;
       alert('¡Cliente registrado con éxito!');
@@ -124,4 +125,4 @@ const RegisterClient: React.FC = () => {
   );
 };
 
-export default RegisterClient;
+export default AddClient;

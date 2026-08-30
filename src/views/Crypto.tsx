@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
 import BottomNav from '../components/BottomNav';
 
-const CryptoP2P: React.FC = () => {
+const Crypto: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [ops, setOps] = useState<any[]>([]);
@@ -27,7 +27,7 @@ const CryptoP2P: React.FC = () => {
       <header className="bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm sticky top-0 z-40">
         <h1 className="text-xl font-black text-primary dark:text-white uppercase tracking-tight">{t('crypto_title')}</h1>
         <button
-          onClick={() => navigate('/accounting-books')}
+          onClick={() => navigate('/books')}
           className="bg-accent-gold/10 text-accent-gold p-2 rounded-xl border border-accent-gold/20 active:scale-90 transition-transform"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -38,7 +38,7 @@ const CryptoP2P: React.FC = () => {
 
       <main className="flex-1 p-6 space-y-6 pb-32 max-w-md mx-auto w-full">
         <button
-          onClick={() => navigate('/register-crypto')}
+          onClick={() => navigate('/add-crypto')}
           className="w-full bg-primary text-white font-black py-5 rounded-[24px] shadow-2xl shadow-blue-900/40 active:scale-[0.98] transition-all uppercase tracking-[0.2em] text-sm"
         >
           {t('btn_reg_op')}
@@ -78,4 +78,4 @@ const CryptoP2P: React.FC = () => {
   );
 };
 
-export default CryptoP2P;
+export default Crypto;
