@@ -61,6 +61,13 @@ const translations = {
     rif_label: "RIF (Tax ID)",
     phone_label: "Teléfono",
     btn_register: "Registrar Cliente",
+    crypto_menu: "Cripto P2P y Contabilidad",
+    crypto_title: "Operaciones P2P",
+    btn_reg_op: "Registrar Operación",
+    type_buy: "Compra",
+    type_sell: "Venta",
+    legal_report_disclaimer: "Este documento es generado como apoyo contable/administrativo con base en los datos registrados por el usuario. No constituye asesoría legal, contable ni tributaria. Se recomienda validar con un contador público y/o abogado antes de presentarlo ante terceros.",
+    legal_tech_report_text: "Por medio de la presente se deja constancia que la actividad comercial de intercambio de criptoactivos realizada por el usuario se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, cumpliendo con los principios de transparencia y licitud de fondos.",
   },
   en: {
     splash_title: "Your billing in its smartest version.",
@@ -114,6 +121,13 @@ const translations = {
     rif_label: "RIF (Tax ID)",
     phone_label: "Phone",
     btn_register: "Register Client",
+    crypto_menu: "Crypto P2P & Accounting",
+    crypto_title: "P2P Operations",
+    btn_reg_op: "Register Operation",
+    type_buy: "Buy",
+    type_sell: "Sell",
+    legal_report_disclaimer: "This document is generated as accounting/administrative support based on data recorded by the user. It does not constitute legal, accounting, or tax advice. It is recommended to validate with a public accountant and/or lawyer before presenting it to third parties.",
+    legal_tech_report_text: "This document certifies that the crypto-asset exchange commercial activity carried out by the user is protected under the current legal framework of the Bolivarian Republic of Venezuela, complying with the principles of transparency and legality of funds.",
   }
 };
 

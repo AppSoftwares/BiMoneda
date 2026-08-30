@@ -16,6 +16,11 @@ const BottomNav: React.FC = () => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" />
       </svg>
     )},
+    { path: '/crypto-p2p', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.407 2.73 1.037M12 8V7m0 8v1m0-8c-1.11 0-2.08-.407-2.73-1.037M12 8v1m0 8c1.11 0 2.08.407 2.73.1.037M12 16v1" />
+      </svg>
+    )},
     { path: '/register-client', icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -29,14 +34,14 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-primary border-t border-gray-100 dark:border-white/10 shadow-2xl h-20 px-6 flex justify-around items-center pb-safe">
+    <nav className="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-primary border-t border-gray-100 dark:border-white/10 shadow-2xl h-20 px-4 flex justify-around items-center pb-safe">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all ${isActive ? 'bg-primary dark:bg-accent-gold text-white dark:text-primary shadow-lg scale-110' : 'text-gray-300 dark:text-gray-500 active:scale-90'}`}
+            className={`flex flex-col items-center justify-center w-11 h-11 rounded-2xl transition-all ${isActive ? 'bg-primary dark:bg-accent-gold text-white dark:text-primary shadow-lg scale-110' : 'text-gray-300 dark:text-gray-500 active:scale-90'}`}
           >
             {item.icon}
           </button>

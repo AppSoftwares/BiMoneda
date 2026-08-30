@@ -13,6 +13,9 @@ import CreateInvoice from './pages/CreateInvoice';
 import RegisterClient from './pages/RegisterClient';
 import InvoicesList from './pages/InvoicesList';
 import InvoicePreviewLegal from './pages/InvoicePreviewLegal';
+import CryptoP2P from './pages/CryptoP2P';
+import RegisterCryptoOp from './pages/RegisterCryptoOp';
+import AccountingBooks from './pages/AccountingBooks';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -57,6 +60,11 @@ function App() {
             <Route path="/register-client" element={session ? <RegisterClient /> : <Navigate to="/login" replace />} />
             <Route path="/invoices" element={session ? <InvoicesList /> : <Navigate to="/login" replace />} />
             <Route path="/invoice/:id" element={session ? <InvoicePreviewLegal /> : <Navigate to="/login" replace />} />
+
+            {/* Crypto Module */}
+            <Route path="/crypto-p2p" element={session ? <CryptoP2P /> : <Navigate to="/login" replace />} />
+            <Route path="/register-crypto" element={session ? <RegisterCryptoOp /> : <Navigate to="/login" replace />} />
+            <Route path="/accounting-books" element={session ? <AccountingBooks /> : <Navigate to="/login" replace />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

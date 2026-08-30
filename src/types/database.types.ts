@@ -9,6 +9,61 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      crypto_operations: {
+        Row: {
+          id: string
+          created_at: string
+          date: string
+          type: 'COMPRA' | 'VENTA'
+          asset: string
+          amount_crypto: number
+          unit_price_bs: number
+          total_amount_bs: number
+          bcv_rate: number
+          platform: string
+          reference: string
+          fee_bs: number
+          notes: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          date: string
+          type: 'COMPRA' | 'VENTA'
+          asset: string
+          amount_crypto: number
+          unit_price_bs: number
+          total_amount_bs: number
+          bcv_rate: number
+          platform?: string
+          reference: string
+          fee_bs?: number
+          notes?: string | null
+        }
+      }
+      ledger_entries: {
+        Row: {
+          id: string
+          operation_id: string
+          date: string
+          debit_account: string
+          credit_account: string
+          amount_bs: number
+          description: string
+        }
+      }
+      inventory_movements: {
+        Row: {
+          id: string
+          operation_id: string
+          in_qty: number | null
+          out_qty: number | null
+          avg_cost: number
+          balance_qty: number
+          balance_value_bs: number
+          realized_profit_bs: number | null
+        }
+      }
       clients: {
         Row: {
           id: string

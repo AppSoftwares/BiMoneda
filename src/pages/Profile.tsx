@@ -113,6 +113,22 @@ const Profile: React.FC = () => {
             </span>
         </div>
 
+        {/* Crypto Menu Entry */}
+        <button
+          onClick={() => navigate('/crypto-p2p')}
+          className="w-full p-6 bg-primary dark:bg-accent-gold text-white dark:text-primary rounded-4xl shadow-xl flex items-center justify-between group active:scale-95 transition-all"
+        >
+          <div className="flex items-center gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.407 2.73 1.037M12 8V7m0 8v1m0-8c-1.11 0-2.08-.407-2.73-1.037M12 8v1m0 8c1.11 0 2.08.407 2.73.1.037M12 16v1" />
+            </svg>
+            <span className="text-sm font-black uppercase tracking-widest">{t('crypto_menu')}</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
         {/* App Settings Group */}
         <div className="space-y-3">
           <GroupTitle>{t('appearance_theme')}</GroupTitle>

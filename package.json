@@ -1,6 +1,6 @@
 {
   "name": "factura-pro-ve",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "type": "module",
   "private": true,
   "scripts": {
@@ -24,13 +24,17 @@
     "@capacitor/keyboard": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
     "@supabase/supabase-js": "^2.112.4",
+    "big.js": "^7.0.1",
     "jeep-sqlite": "^2.8.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.0.0",
+    "@types/big.js": "^7.0.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
