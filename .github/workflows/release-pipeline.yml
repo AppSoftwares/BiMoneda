@@ -1,4 +1,4 @@
-name: iOS Build IPA
+name: BiMoneda Build & Release (APK/IPA)
 
 permissions:
   contents: write
