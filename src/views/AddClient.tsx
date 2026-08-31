@@ -21,7 +21,7 @@ const AddClient: React.FC = () => {
     setLoading(true);
     try {
       // is_active column should be created in Supabase first
-      const { error } = await supabase.from('clients').insert([{
+      const { error } = await (supabase as any).from('clients').insert([{
         name: formData.name,
         rif: formData.rif,
         email: formData.email,

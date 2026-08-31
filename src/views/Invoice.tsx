@@ -16,7 +16,7 @@ const Invoice: React.FC = () => {
         const { data: invData } = await supabase
           .from('invoices')
           .select('*, clients(*)')
-          .eq('id', id)
+          .eq('id', id || '')
           .single();
 
         setInvoice(invData);

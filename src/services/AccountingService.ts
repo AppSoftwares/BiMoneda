@@ -39,7 +39,7 @@ class AccountingService {
     const totalBs = new Big(op.qty).times(op.priceBs).plus(op.feeBs);
 
     // 1. Insert Operation
-    const { data: operation, error: opError } = await supabase
+    const { data: operation, error: opError } = await (supabase as any)
       .from('crypto_operations')
       .insert([{
         type: op.type,
@@ -68,7 +68,7 @@ class AccountingService {
 
     // 1.1 Insert Bank Receipt if provided
     if (op.bankReceipt) {
-      const { error: receiptError } = await supabase
+      const { error: receiptError } = await (supabase as any)
         .from('bank_transfer_receipts')
         .insert([{
           operation_id: operation.id,
@@ -122,12 +122,12 @@ class AccountingService {
       });
     }
 
-    await supabase.from('ledger_entries').insert(entries);
+    await (supabase as any).from('ledger_entries').insert(entries);
   }
 
   private async updateInventory(op: any) {
     // Get last movement to calculate WAC
-    const { data: lastMove } = await supabase
+    const { data: lastMove } = await (supabase as any)
       .from('inventory_movements')
       .select('*')
       .order('id', { ascending: false })
@@ -155,7 +155,7 @@ class AccountingService {
       profit = new Big(op.total_amount_bs).minus(costOfGoodsSold).toNumber();
     }
 
-    await supabase.from('inventory_movements').insert([{
+    await (supabase as any).from('inventory_movements').insert([{
       operation_id: op.id,
       in_qty: op.type === 'COMPRA' ? op.amount_crypto : null,
       out_qty: op.type === 'VENTA' ? op.amount_crypto : null,

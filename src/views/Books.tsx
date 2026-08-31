@@ -27,7 +27,7 @@ const Books: React.FC = () => {
   }, [activeTab]);
 
   const exportPDF = () => {
-    const doc = jsPDF();
+    const doc = new jsPDF();
     doc.text(`Libro ${activeTab === 'diary' ? 'Diario' : activeTab === 'ledger' ? 'Mayor' : 'de Inventario'} - Fiora`, 14, 15);
 
     if (activeTab === 'diary') {

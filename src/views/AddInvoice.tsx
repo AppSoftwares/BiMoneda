@@ -34,7 +34,7 @@ const AddInvoice: React.FC = () => {
     if (!formData.clientId) return alert('Por favor selecciona un cliente');
     setLoading(true);
     try {
-      const { error } = await supabase.from('invoices').insert([{
+      const { error } = await (supabase as any).from('invoices').insert([{
         client_id: formData.clientId,
         invoice_number: Math.floor(100000 + Math.random() * 900000).toString(),
         control_number: "00-" + Math.floor(100000 + Math.random() * 900000).toString(),
