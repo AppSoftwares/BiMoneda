@@ -6,7 +6,8 @@ class StorageService {
 
   async initialize() {
     try {
-      this.db = await this.sqlite.createConnection('bimoneda_local', false, 'no-encryption', 1, false);
+      // Usando 'secret' para habilitar cifrado SQLCipher
+      this.db = await this.sqlite.createConnection('bimoneda_local', true, 'secret', 1, false);
       await this.db.open();
 
       // Schema for local 80% processing

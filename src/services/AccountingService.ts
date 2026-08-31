@@ -11,6 +11,26 @@ export interface CryptoOp {
   reference: string;
   feeBs: number;
   date: string;
+  // Nuevos campos Binance
+  binanceOrder?: string;
+  orderStatus?: 'COMPLETADO' | 'ESPERANDO_PAGO' | 'CANCELADO';
+  qtyNet?: number;
+  feeCrypto?: number;
+  paymentMethod?: string;
+  counterpartyNickname?: string;
+  counterpartyFullName?: string;
+  exchangeDatetime?: string;
+  // Comprobante bancario (opcional)
+  bankReceipt?: {
+    bank: string;
+    opNumber: string;
+    holder: string;
+    sourceMasked: string;
+    destMasked: string;
+    concept?: string;
+    amountBs: number;
+    date: string;
+  };
 }
 
 class AccountingService {
@@ -31,12 +51,38 @@ class AccountingService {
         platform: op.platform,
         reference: op.reference,
         fee_bs: op.feeBs,
-        date: op.date
+        date: op.date,
+        order_number_binance: op.binanceOrder,
+        order_status: op.orderStatus || 'COMPLETADO',
+        qty_net_crypto: op.qtyNet,
+        fee_crypto: op.feeCrypto,
+        payment_method: op.paymentMethod,
+        counterparty_nickname: op.counterpartyNickname,
+        counterparty_full_name: op.counterpartyFullName,
+        exchange_datetime: op.exchangeDatetime
       }])
       .select()
       .single();
 
     if (opError) throw opError;
+
+    // 1.1 Insert Bank Receipt if provided
+    if (op.bankReceipt) {
+      const { error: receiptError } = await supabase
+        .from('bank_transfer_receipts')
+        .insert([{
+          operation_id: operation.id,
+          bank_origin: op.bankReceipt.bank,
+          bank_operation_number: op.bankReceipt.opNumber,
+          account_holder_name: op.bankReceipt.holder,
+          source_account_masked: op.bankReceipt.sourceMasked,
+          dest_account_masked: op.bankReceipt.destMasked,
+          concept: op.bankReceipt.concept,
+          amount_bs: op.bankReceipt.amountBs,
+          operation_date: op.bankReceipt.date
+        }]);
+      if (receiptError) console.error('Error saving bank receipt:', receiptError);
+    }
 
     // 2. Generate Ledger Entries (Partida Doble)
     await this.generateLedgerEntries(operation);

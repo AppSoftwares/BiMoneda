@@ -17,7 +17,21 @@ const AddCrypto: React.FC = () => {
     platform: 'Binance P2P',
     reference: '',
     feeBs: 0,
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    // Binance extra
+    binanceOrder: '',
+    orderStatus: 'COMPLETADO' as any,
+    qtyNet: 0,
+    feeCrypto: 0,
+    counterpartyNickname: '',
+    counterpartyFullName: '',
+    paymentMethod: 'Banco de Venezuela',
+    showBankReceipt: false,
+    bank: 'Banco de Venezuela',
+    opNumber: '',
+    holder: '',
+    sourceMasked: '',
+    destMasked: ''
   });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -29,7 +43,18 @@ const AddCrypto: React.FC = () => {
         qty: Number(formData.qty),
         priceBs: Number(formData.priceBs),
         bcvRate: Number(formData.bcvRate),
-        feeBs: Number(formData.feeBs)
+        feeBs: Number(formData.feeBs),
+        qtyNet: Number(formData.qtyNet),
+        feeCrypto: Number(formData.feeCrypto),
+        bankReceipt: formData.showBankReceipt ? {
+          bank: formData.bank,
+          opNumber: formData.opNumber,
+          holder: formData.holder,
+          sourceMasked: formData.sourceMasked,
+          destMasked: formData.destMasked,
+          amountBs: Number(formData.qty) * Number(formData.priceBs), // Monto en Bs de la orden
+          date: formData.date
+        } : undefined
       });
       alert('Operación contable registrada con éxito');
       navigate('/crypto');
@@ -85,8 +110,28 @@ const AddCrypto: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">Ref / Orden</label>
-                    <input type="text" placeholder="Ej. #202311..." value={formData.reference} onChange={(e) => setFormData({...formData, reference: e.target.value})} className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 rounded-3xl px-6 py-4 text-sm font-bold text-primary dark:text-white outline-none" required />
+                    <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">{t('label_binance_order')}</label>
+                    <input type="text" placeholder="Ej. 229277..." value={formData.binanceOrder} onChange={(e) => setFormData({...formData, binanceOrder: e.target.value, reference: e.target.value})} className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 rounded-3xl px-6 py-4 text-sm font-bold text-primary dark:text-white outline-none" required />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">{t('label_counterparty')}</label>
+                        <input type="text" placeholder="CORPORACION..." value={formData.counterpartyNickname} onChange={(e) => setFormData({...formData, counterpartyNickname: e.target.value})} className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 rounded-3xl px-6 py-4 text-sm font-bold text-primary dark:text-white outline-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">{t('label_order_status')}</label>
+                        <select value={formData.orderStatus} onChange={(e) => setFormData({...formData, orderStatus: e.target.value as any})} className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 rounded-3xl px-6 py-4 text-sm font-bold text-primary dark:text-white outline-none appearance-none">
+                            <option value="COMPLETADO">COMPLETADO</option>
+                            <option value="ESPERANDO_PAGO">ESPERANDO PAGO</option>
+                            <option value="CANCELADO">CANCELADO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-widest">{t('label_full_name')} (Dato Sensible)</label>
+                    <input type="text" value={formData.counterpartyFullName} onChange={(e) => setFormData({...formData, counterpartyFullName: e.target.value})} className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/20 rounded-3xl px-6 py-4 text-sm font-bold text-primary dark:text-white outline-none" />
                 </div>
 
                 <div className="space-y-2">
@@ -97,6 +142,47 @@ const AddCrypto: React.FC = () => {
                         <option value="Reserve">Reserve</option>
                     </select>
                 </div>
+
+                {/* Bank Receipt Toggle */}
+                <button
+                    type="button"
+                    onClick={() => setFormData({...formData, showBankReceipt: !formData.showBankReceipt})}
+                    className={`w-full py-4 rounded-3xl border-2 border-dashed transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest ${formData.showBankReceipt ? 'border-accent-gold bg-accent-gold/5 text-accent-gold' : 'border-gray-200 dark:border-white/10 text-gray-400'}`}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    {formData.showBankReceipt ? 'Ocultar Datos Bancarios' : t('btn_attach_receipt')}
+                </button>
+
+                {formData.showBankReceipt && (
+                    <div className="space-y-6 bg-white dark:bg-white/5 p-6 rounded-[32px] border border-accent-gold/20 shadow-inner animate-in fade-in slide-in-from-top-4 duration-300">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('label_bank')}</label>
+                            <input type="text" value={formData.bank} onChange={(e) => setFormData({...formData, bank: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 rounded-2xl px-5 py-3 text-sm font-bold text-primary dark:text-white" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('label_op_number')}</label>
+                                <input type="text" placeholder="0591..." value={formData.opNumber} onChange={(e) => setFormData({...formData, opNumber: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 rounded-2xl px-5 py-3 text-sm font-bold text-primary dark:text-white" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('label_account_holder')}</label>
+                                <input type="text" value={formData.holder} onChange={(e) => setFormData({...formData, holder: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 rounded-2xl px-5 py-3 text-sm font-bold text-primary dark:text-white" />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cuenta Origen (XXXX****XXXX)</label>
+                                <input type="text" placeholder="0102****1234" value={formData.sourceMasked} onChange={(e) => setFormData({...formData, sourceMasked: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 rounded-2xl px-5 py-3 text-sm font-bold text-primary dark:text-white" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cuenta Destino (XXXX****XXXX)</label>
+                                <input type="text" placeholder="0102****5678" value={formData.destMasked} onChange={(e) => setFormData({...formData, destMasked: e.target.value})} className="w-full bg-gray-50 dark:bg-white/5 rounded-2xl px-5 py-3 text-sm font-bold text-primary dark:text-white" />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="bg-primary p-8 rounded-[40px] shadow-2xl text-white space-y-4">

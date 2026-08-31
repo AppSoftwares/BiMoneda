@@ -22,6 +22,12 @@ const Crypto: React.FC = () => {
     fetchOps();
   }, []);
 
+  const maskName = (name: string) => {
+    if (!name) return '---';
+    if (name.length <= 4) return name + '***';
+    return name.substring(0, 4) + '***' + (name.length > 8 ? name.substring(name.length - 2) : '');
+  };
+
   return (
     <div className="min-h-screen bg-surface-bright dark:bg-[#050c1a] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors flex flex-col">
       <header className="bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm sticky top-0 z-40">
@@ -59,9 +65,16 @@ const Crypto: React.FC = () => {
                             {op.type}
                         </span>
                         <span className="font-black text-primary dark:text-white uppercase tracking-tighter">{op.asset}</span>
+                        <span className="text-[10px] font-black text-accent-gold opacity-60">|</span>
+                        <span className="text-[11px] font-black text-primary dark:text-white tracking-tight">{maskName(op.counterparty_nickname || op.counterparty_full_name)}</span>
                       </div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        {new Date(op.date).toLocaleDateString()} | {op.platform}
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <span>{new Date(op.date).toLocaleDateString()}</span>
+                        <span className="opacity-30">|</span>
+                        <span>{op.platform}</span>
+                        {op.order_status === 'ESPERANDO_PAGO' && (
+                            <span className="bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded-md font-black animate-pulse">PENDIENTE</span>
+                        )}
                       </div>
                    </div>
                    <div className="text-right">
