@@ -1,4 +1,4 @@
--- REPARACIÓN DEFINITIVA FacturaPro VE (v1.0.10)
+-- REPARACIÓN DEFINITIVA FacturaPro VE (v1.0.10 - Fix Policies)
 
 -- 1. Extensiones
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -39,6 +39,7 @@ ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS igtf_percent NUMERIC(5,2) D
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS total_bs NUMERIC(20,2) DEFAULT 0.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS bcv_rate NUMERIC(20,4) DEFAULT 1.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS subscription_id BIGINT;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS concept TEXT;
 
 -- 5. Nueva tabla para Suscripciones de Clientes (Corregida para BIGINT)
 DROP TABLE IF EXISTS public.client_subscriptions CASCADE;
@@ -55,17 +56,26 @@ CREATE TABLE public.client_subscriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. PERMISOS (RLS) - Abrir para desarrollo
+-- 6. PERMISOS (RLS) - Abrir para desarrollo con DROP previo para evitar errores
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crypto_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_subscriptions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Todo para autenticados clients" ON public.clients;
 CREATE POLICY "Todo para autenticados clients" ON public.clients FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Todo para autenticados profile" ON public.company_profile;
 CREATE POLICY "Todo para autenticados profile" ON public.company_profile FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Todo para autenticados invoices" ON public.invoices;
 CREATE POLICY "Todo para autenticados invoices" ON public.invoices FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Todo para autenticados crypto" ON public.crypto_operations;
 CREATE POLICY "Todo para autenticados crypto" ON public.crypto_operations FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Todo para autenticados subscriptions" ON public.client_subscriptions;
 CREATE POLICY "Todo para autenticados subscriptions" ON public.client_subscriptions FOR ALL USING (true) WITH CHECK (true);
 
 -- 7. RECARGAR CACHÉ

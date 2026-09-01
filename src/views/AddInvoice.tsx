@@ -58,6 +58,10 @@ const AddInvoice: React.FC = () => {
     }
   }, [formData.subscriptionId, selectedSub]);
 
+  const ivaUsd = formData.amountUsd * 0.16;
+  const totalUsd = formData.amountUsd + ivaUsd;
+  const totalBs = totalUsd * formData.bcvRate;
+
   const calculateNextBilling = (date: Date, periodicity: string) => {
     const next = new Date(date);
     if (periodicity === 'SEMANAL') next.setDate(next.getDate() + 7);
@@ -213,7 +217,7 @@ const AddInvoice: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 text-[10px]">
                     <div>
                         <span className="text-on-surface-variant font-bold uppercase tracking-wider block">Plan</span>
-                        <span className="text-primary font-bold">{formData.plan}</span>
+                        <span className="text-primary font-bold">{selectedSub?.app_product || '---'}</span>
                     </div>
                     <div className="text-right">
                         <span className="text-on-surface-variant font-bold uppercase tracking-wider block">Tasa BCV</span>
@@ -230,7 +234,7 @@ const AddInvoice: React.FC = () => {
                 onClick={() => alert('Función "Enviar por WhatsApp" estará disponible al generar el PDF real.')}
                 className="flex items-center justify-center gap-2 py-4 bg-green-500 text-white rounded-md font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <svg xmlns="http://www.w3.org/2000/swap" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.956-.5-5.715-1.448l-6.282 1.656zm6.331-4.145c1.455.863 3.041 1.319 4.658 1.32h.005c5.424 0 9.835-4.412 9.838-9.835.001-2.628-2.043-5.1-3.908-6.965s-4.337-3.907-6.966-3.908c-5.423 0-9.834 4.411-9.837 9.835-.001 1.744.457 3.447 1.323 4.965l-.499 1.823.587-.155z" />
                 </svg>
                 WhatsApp
