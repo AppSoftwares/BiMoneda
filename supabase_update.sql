@@ -1,11 +1,11 @@
--- REPARACIÓN DEFINITIVA FacturaPro VE
+-- REPARACIÓN DEFINITIVA FacturaPro VE (v1.0.10)
 
 -- 1. Extensiones
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Reparación Tabla CLIENTS
+-- 2. Reparación Tabla CLIENTS (Compatible con BIGINT)
 CREATE TABLE IF NOT EXISTS public.clients (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id BIGSERIAL PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     name TEXT NOT NULL,
     rif TEXT NOT NULL UNIQUE,
@@ -38,12 +38,13 @@ ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS iva_percent NUMERIC(5,2) DE
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS igtf_percent NUMERIC(5,2) DEFAULT 0.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS total_bs NUMERIC(20,2) DEFAULT 0.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS bcv_rate NUMERIC(20,4) DEFAULT 1.00;
-ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS subscription_id BIGINT; -- FK a client_subscriptions
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS subscription_id BIGINT;
 
--- 5. Nueva tabla para Suscripciones de Clientes
-CREATE TABLE IF NOT EXISTS public.client_subscriptions (
+-- 5. Nueva tabla para Suscripciones de Clientes (Corregida para BIGINT)
+DROP TABLE IF EXISTS public.client_subscriptions CASCADE;
+CREATE TABLE public.client_subscriptions (
     id BIGSERIAL PRIMARY KEY,
-    client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE,
+    client_id BIGINT REFERENCES public.clients(id) ON DELETE CASCADE,
     app_product TEXT CHECK (app_product IN ('CONDOMINIO', 'EASY_GO', 'BIMONEDA')) NOT NULL,
     periodicity TEXT CHECK (periodicity IN ('SEMANAL', 'MENSUAL', 'SEMESTRAL', 'ANUAL')) NOT NULL,
     amount_usd NUMERIC(20, 2) NOT NULL,
