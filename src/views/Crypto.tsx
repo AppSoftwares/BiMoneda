@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import BottomNav from '../components/BottomNav';
 
 const Crypto: React.FC = () => {
@@ -26,6 +28,72 @@ const Crypto: React.FC = () => {
     if (!name) return '---';
     if (name.length <= 4) return name + '***';
     return name.substring(0, 4) + '***' + (name.length > 8 ? name.substring(name.length - 2) : '');
+  };
+
+  const exportReport = (op: any) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(11, 37, 69); // Primary color
+    doc.text("INFORME TÉCNICO-LEGAL P2P", pageWidth / 2, 20, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Operación N.º: ${op.order_number_binance || op.id.substring(0, 8)}`, pageWidth / 2, 28, { align: 'center' });
+
+    // Legal Body
+    doc.setFontSize(12);
+    doc.setTextColor(0);
+    const splitText = doc.splitTextToSize(t('legal_tech_report_text'), pageWidth - 40);
+    doc.text(splitText, 20, 45);
+
+    // Operation Details
+    autoTable(doc, {
+      startY: 70,
+      head: [['Concepto', 'Detalle']],
+      body: [
+        ['Activo', op.asset],
+        ['Tipo', op.type],
+        ['Cantidad', op.amount_crypto.toString()],
+        ['Precio (Bs)', op.unit_price_bs.toLocaleString()],
+        ['Total (Bs)', op.total_amount_bs.toLocaleString()],
+        ['Fecha', new Date(op.date).toLocaleDateString()],
+        ['Plataforma', op.platform],
+        ['Binance Order', op.order_number_binance || 'N/A'],
+        ['Contraparte', op.counterparty_nickname || '---']
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [11, 37, 69] }
+    });
+
+    // Legal Reference
+    const finalY = (doc as any).lastAutoTable.finalY + 20;
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    const refText = doc.splitTextToSize(t('legal_reference_block'), pageWidth - 40);
+    doc.text(refText, 20, finalY);
+
+    // Disclaimer
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "italic");
+    const discText = doc.splitTextToSize(t('legal_report_disclaimer'), pageWidth - 40);
+    doc.text(discText, 20, finalY + 25);
+
+    // Certification of Income Page
+    doc.addPage();
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("CERTIFICACIÓN DE INGRESOS (CRIPTO)", pageWidth / 2, 20, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString()} producto de la liquidación de ${op.amount_crypto} ${op.asset} en la plataforma ${op.platform} con fecha ${new Date(op.date).toLocaleDateString()}.`;
+    const certSplit = doc.splitTextToSize(certText, pageWidth - 40);
+    doc.text(certSplit, 20, 40);
+
+    doc.save(`Informe_P2P_${op.order_number_binance || 'op'}.pdf`);
   };
 
   return (
@@ -77,9 +145,18 @@ const Crypto: React.FC = () => {
                         )}
                       </div>
                    </div>
-                   <div className="text-right">
+                   <div className="text-right flex flex-col items-end gap-2">
                       <div className="text-sm font-black text-primary dark:text-white">${op.amount_crypto.toFixed(2)}</div>
                       <div className="text-[9px] font-bold text-accent-gold uppercase italic">Bs. {op.total_amount_bs.toLocaleString()}</div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); exportReport(op); }}
+                        className="bg-primary text-white p-1.5 rounded-lg active:scale-90 transition-transform"
+                        title="Exportar Informe"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </button>
                    </div>
                 </div>
             ))}
