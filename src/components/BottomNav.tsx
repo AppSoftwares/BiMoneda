@@ -34,14 +34,14 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full z-50 bg-white dark:bg-primary border-t border-gray-100 dark:border-white/10 shadow-2xl h-20 px-4 flex justify-around items-center pb-safe">
+    <nav className="fixed bottom-0 left-0 w-full z-50 bg-primary border-t border-white/10 shadow-2xl h-20 px-4 flex justify-around items-center pb-safe">
       {navItems.map((item) => {
         const isActive = location.pathname === item.path;
         return (
           <button
             key={item.path}
             onClick={() => navigate(item.path)}
-            className={`flex flex-col items-center justify-center w-11 h-11 rounded-2xl transition-all ${isActive ? 'bg-primary dark:bg-accent-gold text-white dark:text-primary shadow-lg scale-110' : 'text-gray-300 dark:text-gray-500 active:scale-90'}`}
+            className={`flex flex-col items-center justify-center w-11 h-11 rounded-xl transition-all ${isActive ? 'bg-accent-sky text-white shadow-lg scale-110' : 'text-on-primary/40 active:scale-90'}`}
           >
             {item.icon}
           </button>

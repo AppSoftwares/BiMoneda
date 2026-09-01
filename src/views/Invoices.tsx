@@ -34,26 +34,41 @@ const Invoices: React.FC = () => {
     ? invoices
     : invoices.filter(inv => inv.status === filter);
 
+  const totalPending = invoices.filter(i => i.status === 'PENDING').reduce((acc, curr) => acc + (curr.total_usd || 0), 0);
+  const totalOverdue = invoices.filter(i => i.status === 'CANCELLED').reduce((acc, curr) => acc + (curr.total_usd || 0), 0); // Using CANCELLED as proxy for overdue or adjustment
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#050c1a] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors flex flex-col">
-      <header className="sticky top-0 z-40 bg-white dark:bg-primary border-b border-gray-100 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary dark:text-white active:scale-90 transition-transform">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <h1 className="text-xl font-black text-primary dark:text-white uppercase tracking-tight">{t('recent_inv')}</h1>
-        <div className="w-10"></div>
+    <div className="min-h-screen bg-background font-inter pb-32">
+      <header className="sticky top-0 z-50 bg-white px-6 h-20 flex items-center justify-between shadow-level-1">
+        <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 text-primary active:scale-90 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <h1 className="text-xl font-bold text-primary tracking-tight">{t('recent_inv')}</h1>
+        </div>
       </header>
 
-      <main className="flex-1 p-6 space-y-6 max-w-md mx-auto pb-32">
+      <main className="p-6 space-y-8 max-w-md mx-auto">
+        <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white p-4 rounded-lg border border-outline-variant shadow-level-1">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Total Pendiente</span>
+                <div className="text-lg font-bold text-amber-600">${totalPending.toFixed(2)}</div>
+            </div>
+            <div className="bg-white p-4 rounded-lg border border-outline-variant shadow-level-1">
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Total Atrasado</span>
+                <div className="text-lg font-bold text-red-600">${totalOverdue.toFixed(2)}</div>
+            </div>
+        </div>
+
         {/* Filters */}
-        <div className="flex bg-white dark:bg-white/5 p-1.5 rounded-3xl border border-gray-100 dark:border-white/10 shadow-sm overflow-x-auto gap-2 no-scrollbar">
+        <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant overflow-x-auto no-scrollbar gap-1">
             {['all', 'PAID', 'PENDING', 'CANCELLED'].map(f => (
                 <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-6 py-3 text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all whitespace-nowrap ${filter === f ? 'bg-primary text-white shadow-lg' : 'text-gray-400'}`}
+                    className={`flex-1 min-w-[80px] py-2.5 text-[9px] font-bold uppercase tracking-widest rounded transition-all whitespace-nowrap ${filter === f ? 'bg-white text-primary shadow-sm border border-outline-variant/30' : 'text-on-surface-variant'}`}
                 >
                     {f === 'all' ? t('all_filters') : t(`status_${f.toLowerCase()}`)}
                 </button>
@@ -61,42 +76,50 @@ const Invoices: React.FC = () => {
         </div>
 
         {/* List */}
-        <div className="bg-white dark:bg-white/5 rounded-[40px] border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg border border-outline-variant shadow-level-1 overflow-hidden">
           {loading ? (
-            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px] animate-pulse">{t('loading_invoices')}</div>
+            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px] animate-pulse">{t('loading_invoices')}</div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-10 text-center text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('no_invoices')}</div>
+            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px]">{t('no_invoices')}</div>
           ) : filteredInvoices.map((inv, i) => (
             <div
                 key={inv.id}
                 onClick={() => navigate(`/invoice/${inv.id}`)}
-                className={`p-6 flex justify-between items-center ${i !== filteredInvoices.length - 1 ? 'border-b border-gray-50 dark:border-white/5' : ''} active:bg-gray-50 dark:active:bg-white/5 transition-all cursor-pointer`}
+                className={`p-5 flex justify-between items-center ${i !== filteredInvoices.length - 1 ? 'border-b border-outline-variant/30' : ''} active:bg-surface-container-low transition-all cursor-pointer`}
             >
                 <div className="space-y-1">
-                  <div className="font-black text-primary dark:text-white text-base tracking-tight">{inv.clients?.name || 'Cliente Desconocido'}</div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em] flex items-center gap-2">
+                  <div className="font-bold text-primary text-sm tracking-tight">{inv.clients?.name || 'Cliente Final'}</div>
+                  <div className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider flex items-center gap-2">
                     <span>#INV-{inv.invoice_number}</span>
-                    <span className="text-gray-200">|</span>
-                    <span className={inv.status === 'PAID' ? 'text-blue-500' : 'text-accent-gold'}>{t(`status_${inv.status.toLowerCase()}`)}</span>
-                    <span className="text-gray-200">|</span>
-                    <span className="text-primary dark:text-white/70 font-black">${inv.total_usd.toFixed(2)}</span>
+                    <span className="opacity-30">|</span>
+                    <span>{new Date(inv.issue_date).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className={inv.status === 'PAID' ? 'text-blue-500' : 'text-accent-gold'}>
-                    {inv.status === 'PAID' ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                    ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
-                    )}
+                <div className="text-right flex flex-col items-end gap-1">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ${inv.status === 'PAID' ? 'bg-green-100 text-green-700' : inv.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        {inv.status}
+                    </span>
+                    <div className="text-sm font-bold text-primary">${inv.total_usd.toFixed(2)}</div>
                 </div>
             </div>
           ))}
         </div>
       </main>
+
+      {/* FAB */}
+      <button
+        onClick={() => navigate('/add-invoice')}
+        className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-level-2 flex items-center justify-center active:scale-90 transition-transform z-50 border-4 border-white"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+      </button>
+
+      <BottomNav />
+    </div>
+  );
+};
       <BottomNav />
     </div>
   );
