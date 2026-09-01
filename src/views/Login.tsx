@@ -41,7 +41,7 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleLogin} className="w-full space-y-6">
           <div className="space-y-3">
-            <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-[0.2em]">{t('email_label')}</label>
+            <label className="text-[11px] font-black text-secondary uppercase ml-1 tracking-[0.2em]">{t('email_label')}</label>
             <input
               type="email"
               placeholder="ejemplo@correo.com"
@@ -53,7 +53,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[11px] font-black text-accent-gold uppercase ml-1 tracking-[0.2em]">{t('pass_label')}</label>
+            <label className="text-[11px] font-black text-secondary uppercase ml-1 tracking-[0.2em]">{t('pass_label')}</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
