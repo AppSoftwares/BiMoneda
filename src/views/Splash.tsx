@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 const Splash: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const version = "1.0.11";
+  const version = "1.1.0";
 
   return (
     <div className="min-h-screen bg-surface-bright dark:bg-primary flex flex-col items-center justify-center p-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] transition-colors">
