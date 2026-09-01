@@ -191,6 +191,44 @@ export interface Database {
           realized_profit_bs?: number | null
         }
       }
+      client_subscriptions: {
+        Row: {
+          id: number
+          client_id: string
+          app_product: 'CONDOMINIO' | 'EASY_GO' | 'BIMONEDA'
+          periodicity: 'SEMANAL' | 'MENSUAL' | 'SEMESTRAL' | 'ANUAL'
+          amount_usd: number
+          billable_description: string
+          start_date: string
+          next_billing_date: string | null
+          status: 'ACTIVA' | 'PAUSADA' | 'CANCELADA'
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          client_id: string
+          app_product: 'CONDOMINIO' | 'EASY_GO' | 'BIMONEDA'
+          periodicity: 'SEMANAL' | 'MENSUAL' | 'SEMESTRAL' | 'ANUAL'
+          amount_usd: number
+          billable_description: string
+          start_date?: string
+          next_billing_date?: string | null
+          status?: 'ACTIVA' | 'PAUSADA' | 'CANCELADA'
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          client_id?: string
+          app_product?: 'CONDOMINIO' | 'EASY_GO' | 'BIMONEDA'
+          periodicity?: 'SEMANAL' | 'MENSUAL' | 'SEMESTRAL' | 'ANUAL'
+          amount_usd?: number
+          billable_description?: string
+          start_date?: string
+          next_billing_date?: string | null
+          status?: 'ACTIVA' | 'PAUSADA' | 'CANCELADA'
+          created_at?: string
+        }
+      }
       clients: {
         Row: {
           id: string

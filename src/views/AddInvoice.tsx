@@ -9,13 +9,15 @@ const AddInvoice: React.FC = () => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
     clientId: '',
-    plan: 'Standard',
+    subscriptionId: '',
     paymentMethod: 'Zelle',
     reference: '',
-    amountUsd: 100,
+    amountUsd: 0,
+    concept: '',
     bcvRate: 36.00,
   });
 
@@ -27,18 +29,54 @@ const AddInvoice: React.FC = () => {
     fetchClients();
   }, []);
 
+  useEffect(() => {
+    const fetchSubs = async () => {
+      if (!formData.clientId) {
+        setSubscriptions([]);
+        return;
+      }
+      const { data } = await supabase
+        .from('client_subscriptions')
+        .select('*')
+        .eq('client_id', formData.clientId)
+        .eq('status', 'ACTIVA');
+      if (data) setSubscriptions(data);
+    };
+    fetchSubs();
+  }, [formData.clientId]);
+
   const selectedClient = clients.find(c => c.id === formData.clientId);
-  const ivaUsd = formData.amountUsd * 0.16;
-  const totalUsd = formData.amountUsd + ivaUsd;
-  const totalBs = totalUsd * formData.bcvRate;
+  const selectedSub = subscriptions.find(s => s.id.toString() === formData.subscriptionId);
+
+  useEffect(() => {
+    if (selectedSub) {
+      setFormData(prev => ({
+        ...prev,
+        amountUsd: selectedSub.amount_usd,
+        concept: selectedSub.billable_description
+      }));
+    }
+  }, [formData.subscriptionId, selectedSub]);
+
+  const calculateNextBilling = (date: Date, periodicity: string) => {
+    const next = new Date(date);
+    if (periodicity === 'SEMANAL') next.setDate(next.getDate() + 7);
+    else if (periodicity === 'MENSUAL') next.setMonth(next.getMonth() + 1);
+    else if (periodicity === 'SEMESTRAL') next.setMonth(next.getMonth() + 6);
+    else if (periodicity === 'ANUAL') next.setFullYear(next.getFullYear() + 1);
+    return next.toISOString().split('T')[0];
+  };
 
   const handleCreate = async () => {
     if (!formData.clientId) return alert('Por favor selecciona un cliente');
+    if (!formData.subscriptionId) return alert('Por favor selecciona una suscripción activa');
+
     setLoading(true);
     try {
       const invoiceNumber = Math.floor(100000 + Math.random() * 900000).toString();
       const { data: invoice, error } = await (supabase as any).from('invoices').insert([{
         client_id: formData.clientId,
+        subscription_id: formData.subscriptionId,
         invoice_number: invoiceNumber,
         control_number: "00-" + invoiceNumber,
         issue_date: new Date().toISOString(),
@@ -53,11 +91,20 @@ const AddInvoice: React.FC = () => {
         total_bs: totalBs,
         bcv_rate: formData.bcvRate,
         payment_method: formData.paymentMethod,
-        notes: `Plan: ${formData.plan} | Ref: ${formData.reference}`
+        notes: `Plan: ${selectedSub?.app_product} | Ref: ${formData.reference}`,
+        concept: formData.concept
       }]).select().single();
 
       if (error) throw error;
-      alert('¡Factura emitida exitosamente!');
+
+      // Update Next Billing Date in Subscription
+      const nextDate = calculateNextBilling(new Date(), selectedSub.periodicity);
+      await (supabase as any)
+        .from('client_subscriptions')
+        .update({ next_billing_date: nextDate })
+        .eq('id', formData.subscriptionId);
+
+      alert('¡Factura emitida y próximo cobro actualizado!');
       navigate(`/invoice/${invoice.id}`);
     } catch (err: any) {
       alert('Error: ' + err.message);
@@ -91,28 +138,34 @@ const AddInvoice: React.FC = () => {
                 </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Subscription Plan</label>
-                    <select
-                        value={formData.plan}
-                        onChange={(e) => setFormData({...formData, plan: e.target.value})}
-                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1"
-                    >
-                        <option value="Basic">Basic Plan</option>
-                        <option value="Standard">Standard Plan</option>
-                        <option value="Premium">Premium Plan</option>
-                    </select>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Amount (USD)</label>
-                    <input
-                        type="number"
-                        value={formData.amountUsd}
-                        onChange={(e) => setFormData({...formData, amountUsd: parseFloat(e.target.value) || 0})}
-                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-bold outline-none focus:border-accent-sky shadow-level-1"
-                    />
-                </div>
+            <div className="space-y-2">
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Subscription Plan</label>
+                <select
+                    value={formData.subscriptionId}
+                    onChange={(e) => setFormData({...formData, subscriptionId: e.target.value})}
+                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
+                    disabled={!formData.clientId}
+                >
+                    <option value="">-- {formData.clientId ? 'Choose a plan' : 'Select a client first'} --</option>
+                    {subscriptions.map(s => (
+                        <option key={s.id} value={s.id}>
+                            {s.app_product} ({s.periodicity}) - ${s.amount_usd}
+                        </option>
+                    ))}
+                </select>
+                {formData.clientId && subscriptions.length === 0 && (
+                    <p className="text-[10px] text-amber-600 font-bold uppercase mt-1 ml-1">Este cliente no tiene suscripciones activas — agrégale una desde su ficha</p>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Amount (USD)</label>
+                <input
+                    type="number"
+                    value={formData.amountUsd}
+                    onChange={(e) => setFormData({...formData, amountUsd: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-bold outline-none focus:border-accent-sky shadow-level-1"
+                />
             </div>
 
             <div className="space-y-2">

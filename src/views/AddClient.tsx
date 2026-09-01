@@ -13,8 +13,31 @@ const AddClient: React.FC = () => {
     rif: '',
     email: '',
     phone: '',
-    trial: false
+    trial: false,
+    subscriptions: [] as any[]
   });
+
+  const generateDescription = (app: string, periodicity: string) => {
+    const appLabel = app === 'CONDOMINIO' ? 'Condominio' : app === 'EASY_GO' ? 'Easy Go' : 'BiMoneda';
+    const perLabel = periodicity.toLowerCase();
+    return `Pago periódico de servicios de suscripción activa modelo de cobro ${perLabel} para acceder a contenido, funciones o servicios continuos dentro de la App móvil ${appLabel}.`;
+  };
+
+  const calculateNextBilling = (date: Date, periodicity: string) => {
+    const next = new Date(date);
+    if (periodicity === 'SEMANAL') next.setDate(next.getDate() + 7);
+    else if (periodicity === 'MENSUAL') next.setMonth(next.getMonth() + 1);
+    else if (periodicity === 'SEMESTRAL') next.setMonth(next.getMonth() + 6);
+    else if (periodicity === 'ANUAL') next.setFullYear(next.getFullYear() + 1);
+    return next.toISOString().split('T')[0];
+  };
+
+  const addSubSlot = () => {
+    setFormData({
+      ...formData,
+      subscriptions: [...formData.subscriptions, { app: 'BIMONEDA', periodicity: 'MENSUAL', amount: 0 }]
+    });
+  };
 
   const validateRif = (rif: string) => {
     const regex = /^[VEJGP]-[0-9]{8}-[0-9]$/i;
@@ -28,15 +51,31 @@ const AddClient: React.FC = () => {
     }
     setLoading(true);
     try {
-      const { error } = await (supabase as any).from('clients').insert([{
+      const { data: client, error } = await (supabase as any).from('clients').insert([{
         name: formData.name,
         rif: formData.rif.toUpperCase(),
         email: formData.email,
         phone: formData.phone,
         is_active: true
-      }]);
+      }]).select().single();
+
       if (error) throw error;
-      alert('¡Cliente registrado con éxito!');
+
+      if (formData.subscriptions.length > 0) {
+        const subsToInsert = formData.subscriptions.map(s => ({
+          client_id: client.id,
+          app_product: s.app,
+          periodicity: s.periodicity,
+          amount_usd: Number(s.amount),
+          billable_description: generateDescription(s.app, s.periodicity),
+          next_billing_date: calculateNextBilling(new Date(), s.periodicity),
+          status: 'ACTIVA'
+        }));
+        const { error: subError } = await (supabase as any).from('client_subscriptions').insert(subsToInsert);
+        if (subError) throw subError;
+      }
+
+      alert('¡Cliente y suscripciones registrados con éxito!');
       navigate('/dashboard');
     } catch (err: any) {
       alert('Error: ' + err.message);
@@ -103,6 +142,84 @@ const AddClient: React.FC = () => {
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
               />
+            </div>
+
+            <div className="pt-4 space-y-4">
+              <div className="flex justify-between items-center px-1">
+                <h3 className="text-xs font-bold text-primary uppercase tracking-widest">Suscripción</h3>
+                <button type="button" onClick={addSubSlot} className="text-[10px] font-bold text-secondary uppercase tracking-widest">+ Agregar otra</button>
+              </div>
+
+              {formData.subscriptions.map((sub, index) => (
+                <div key={index} className="bg-white border border-outline-variant rounded-lg p-5 space-y-4 shadow-sm relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newSubs = [...formData.subscriptions];
+                      newSubs.splice(index, 1);
+                      setFormData({ ...formData, subscriptions: newSubs });
+                    }}
+                    className="absolute top-2 right-2 text-red-400 p-1"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">App</label>
+                      <select
+                        value={sub.app}
+                        onChange={e => {
+                          const newSubs = [...formData.subscriptions];
+                          newSubs[index].app = e.target.value;
+                          setFormData({ ...formData, subscriptions: newSubs });
+                        }}
+                        className="w-full bg-surface-container-low p-2.5 rounded text-xs font-bold text-primary"
+                      >
+                        <option value="CONDOMINIO">Condominio</option>
+                        <option value="EASY_GO">Easy Go</option>
+                        <option value="BIMONEDA">BiMoneda</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Monto (USD)</label>
+                      <input
+                        type="number"
+                        value={sub.amount}
+                        onChange={e => {
+                          const newSubs = [...formData.subscriptions];
+                          newSubs[index].amount = e.target.value;
+                          setFormData({ ...formData, subscriptions: newSubs });
+                        }}
+                        className="w-full bg-surface-container-low p-2.5 rounded text-xs font-bold text-primary"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Periodicidad</label>
+                    <div className="flex bg-surface-container-low p-1 rounded border border-outline-variant/30 overflow-x-auto gap-1">
+                        {['SEMANAL', 'MENSUAL', 'SEMESTRAL', 'ANUAL'].map(p => (
+                            <button
+                                key={p}
+                                type="button"
+                                onClick={() => {
+                                  const newSubs = [...formData.subscriptions];
+                                  newSubs[index].periodicity = p;
+                                  setFormData({ ...formData, subscriptions: newSubs });
+                                }}
+                                className={`flex-1 min-w-[70px] py-2 text-[8px] font-bold uppercase rounded transition-all ${sub.periodicity === p ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                            >{p}</button>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {formData.subscriptions.length === 0 && (
+                <div className="bg-surface-container-low border border-dashed border-outline-variant p-6 rounded-lg text-center">
+                   <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest">Sin suscripciones iniciales</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant flex items-center justify-between shadow-level-1">
