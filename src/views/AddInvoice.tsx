@@ -16,9 +16,12 @@ const AddInvoice: React.FC = () => {
     clientId: '',
     subscriptionId: '',
     paymentMethod: 'Zelle',
+    paymentCondition: 'CONTADO' as 'CONTADO' | 'CREDITO',
+    saleType: 'INTERNA' as 'INTERNA' | 'EXTERNA',
     reference: '',
     amountUsd: 0,
     concept: '',
+    observations: '',
     bcvRate: 36.00,
   });
 
@@ -92,12 +95,16 @@ const AddInvoice: React.FC = () => {
     setLoading(true);
     try {
       const invoiceNumber = Math.floor(100000 + Math.random() * 900000).toString();
+      const now = new Date();
+
       const { data: invoice, error } = await (supabase as any).from('invoices').insert([{
         client_id: formData.clientId,
         subscription_id: formData.subscriptionId,
         invoice_number: invoiceNumber,
         control_number: "00-" + invoiceNumber,
-        issue_date: new Date().toISOString(),
+        issue_date: now.toISOString().split('T')[0],
+        issue_time: now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        assignment_date: now.toISOString().split('T')[0],
         status: 'PAID',
         subtotal_usd: formData.amountUsd,
         taxable_base_usd: formData.amountUsd,
@@ -109,6 +116,12 @@ const AddInvoice: React.FC = () => {
         total_bs: totalBs,
         bcv_rate: formData.bcvRate,
         payment_method: formData.paymentMethod,
+        payment_condition: formData.paymentCondition,
+        sale_type: formData.saleType,
+        observations: formData.observations,
+        item_code: `SUB-${selectedSub?.app_product}`,
+        item_unit: 'SERVICIO',
+        tax_aliquot: 'G',
         notes: `Plan: ${selectedSub?.app_product} | Ref: ${formData.reference}`,
         concept: formData.concept
       }]).select().single();
@@ -172,14 +185,33 @@ const AddInvoice: React.FC = () => {
                 </select>
             </div>
 
-            <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Monto (USD)</label>
-                <input
-                    type="number"
-                    value={formData.amountUsd}
-                    onChange={(e) => setFormData({...formData, amountUsd: parseFloat(e.target.value) || 0})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-bold outline-none focus:border-accent-sky shadow-level-1"
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Condición Pago</label>
+                    <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
+                        {['CONTADO', 'CREDITO'].map(m => (
+                            <button
+                                key={m}
+                                type="button"
+                                onClick={() => setFormData({...formData, paymentCondition: m as any})}
+                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.paymentCondition === m ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                            >{m}</button>
+                        ))}
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Tipo Venta</label>
+                    <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
+                        {['INTERNA', 'EXTERNA'].map(m => (
+                            <button
+                                key={m}
+                                type="button"
+                                onClick={() => setFormData({...formData, saleType: m as any})}
+                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.saleType === m ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                            >{m}</button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             <div className="space-y-2">
@@ -194,9 +226,17 @@ const AddInvoice: React.FC = () => {
                         >{m}</button>
                     ))}
                 </div>
-                <p className="text-[9px] text-on-surface-variant italic mt-1 px-1">
-                    {igtfPercent > 0 ? '* Aplica IGTF (3%) por pago en divisas.' : '* Exento de IGTF por pago en moneda nacional.'}
-                </p>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Observaciones</label>
+                <input
+                    type="text"
+                    placeholder="Ej. Comisiones Varias"
+                    value={formData.observations}
+                    onChange={(e) => setFormData({...formData, observations: e.target.value})}
+                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
+                />
             </div>
 
             <div className="space-y-2">

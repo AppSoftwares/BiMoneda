@@ -271,6 +271,12 @@ export interface Database {
           email: string | null
           logo_url: string | null
           signature_url: string | null
+          economic_activity_code?: string | null
+          cert_provider_name?: string | null
+          cert_provider_rif?: string | null
+          cert_provider_providence?: string | null
+          control_range_from?: string | null
+          control_range_to?: string | null
         }
         Insert: {
           id?: string
@@ -281,6 +287,12 @@ export interface Database {
           email?: string | null
           logo_url?: string | null
           signature_url?: string | null
+          economic_activity_code?: string | null
+          cert_provider_name?: string | null
+          cert_provider_rif?: string | null
+          cert_provider_providence?: string | null
+          control_range_from?: string | null
+          control_range_to?: string | null
         }
         Update: {
           id?: string
@@ -291,6 +303,12 @@ export interface Database {
           email?: string | null
           logo_url?: string | null
           signature_url?: string | null
+          economic_activity_code?: string | null
+          cert_provider_name?: string | null
+          cert_provider_rif?: string | null
+          cert_provider_providence?: string | null
+          control_range_from?: string | null
+          control_range_to?: string | null
         }
       }
       invoices: {
@@ -313,6 +331,15 @@ export interface Database {
           bcv_rate: number
           payment_method: string
           notes: string | null
+          issue_time?: string | null
+          assignment_date?: string | null
+          payment_condition?: 'CONTADO' | 'CREDITO'
+          sale_type?: 'INTERNA' | 'EXTERNA'
+          observations?: string | null
+          item_code?: string | null
+          item_unit?: string | null
+          discount_percent?: number | null
+          tax_aliquot?: 'G' | 'E' | null
         }
         Insert: {
           id?: string
@@ -333,6 +360,15 @@ export interface Database {
           bcv_rate: number
           payment_method: string
           notes?: string | null
+          issue_time?: string | null
+          assignment_date?: string | null
+          payment_condition?: 'CONTADO' | 'CREDITO'
+          sale_type?: 'INTERNA' | 'EXTERNA'
+          observations?: string | null
+          item_code?: string | null
+          item_unit?: string | null
+          discount_percent?: number | null
+          tax_aliquot?: 'G' | 'E' | null
         }
         Update: {
           id?: string
@@ -353,6 +389,15 @@ export interface Database {
           bcv_rate?: number
           payment_method?: string
           notes?: string | null
+          issue_time?: string | null
+          assignment_date?: string | null
+          payment_condition?: 'CONTADO' | 'CREDITO'
+          sale_type?: 'INTERNA' | 'EXTERNA'
+          observations?: string | null
+          item_code?: string | null
+          item_unit?: string | null
+          discount_percent?: number | null
+          tax_aliquot?: 'G' | 'E' | null
         }
       }
     }

@@ -1,9 +1,9 @@
--- REPARACIÓN DEFINITIVA FacturaPro VE (v1.0.10 - Fix Policies)
+-- REPARACIÓN DEFINITIVA FacturaPro VE (v1.1.2 - Professional Invoice Structure)
 
 -- 1. Extensiones
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 2. Reparación Tabla CLIENTS (Compatible con BIGINT)
+-- 2. Reparación Tabla CLIENTS
 CREATE TABLE IF NOT EXISTS public.clients (
     id BIGSERIAL PRIMARY KEY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
 );
 ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
--- 3. Reparación Tabla COMPANY_PROFILE
+-- 3. Reparación Tabla COMPANY_PROFILE (Campos Legales Extendidos)
 DROP TABLE IF EXISTS public.company_profile CASCADE;
 CREATE TABLE public.company_profile (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -27,21 +27,37 @@ CREATE TABLE public.company_profile (
     email TEXT DEFAULT 'admin@bimoneda.app',
     logo_url TEXT,
     signature_url TEXT,
+    economic_activity_code TEXT DEFAULT '9499',
+    cert_provider_name TEXT,
+    cert_provider_rif TEXT,
+    cert_provider_providence TEXT,
+    control_range_from TEXT,
+    control_range_to TEXT,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 INSERT INTO public.company_profile (name, rif, address)
 VALUES ('BiMoneda S.A.', 'J-00000000-0', 'Caracas, Venezuela');
 
--- 4. Reparación Tabla INVOICES
+-- 4. Reparación Tabla INVOICES (Campos SENIAT)
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS iva_percent NUMERIC(5,2) DEFAULT 16.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS igtf_percent NUMERIC(5,2) DEFAULT 0.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS total_bs NUMERIC(20,2) DEFAULT 0.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS bcv_rate NUMERIC(20,4) DEFAULT 1.00;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS subscription_id BIGINT;
 ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS concept TEXT;
+-- Nuevos campos v1.1.2
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS issue_time TEXT;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS assignment_date DATE DEFAULT CURRENT_DATE;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS payment_condition TEXT CHECK (payment_condition IN ('CONTADO', 'CREDITO')) DEFAULT 'CONTADO';
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS sale_type TEXT CHECK (sale_type IN ('INTERNA', 'EXTERNA')) DEFAULT 'INTERNA';
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS observations TEXT;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS item_code TEXT;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS item_unit TEXT DEFAULT 'SERVICIO';
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS discount_percent NUMERIC(5,2) DEFAULT 0.00;
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS tax_aliquot TEXT DEFAULT 'G';
 
--- 5. Nueva tabla para Suscripciones de Clientes (Corregida para BIGINT)
+-- 5. Nueva tabla para Suscripciones de Clientes
 DROP TABLE IF EXISTS public.client_subscriptions CASCADE;
 CREATE TABLE public.client_subscriptions (
     id BIGSERIAL PRIMARY KEY,
@@ -56,7 +72,7 @@ CREATE TABLE public.client_subscriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. PERMISOS (RLS) - Abrir para desarrollo con DROP previo para evitar errores
+-- 6. PERMISOS (RLS)
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
