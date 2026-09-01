@@ -47,9 +47,9 @@ const Dashboard: React.FC = () => {
         setCounts({ clients: clientCount || 0, p2p: p2pCount || 0 });
 
         // Calculate Totals (Mock logic for now or real query)
-        const { data: allInv } = await supabase.from('invoices').select('total_usd, total_bs');
-        const sumUsd = allInv?.reduce((acc, curr) => acc + (curr.total_usd || 0), 0) || 0;
-        const sumBs = allInv?.reduce((acc, curr) => acc + (curr.total_bs || 0), 0) || 0;
+        const { data: allInv } = await (supabase as any).from('invoices').select('total_usd, total_bs');
+        const sumUsd = (allInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_usd || 0), 0) || 0;
+        const sumBs = (allInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_bs || 0), 0) || 0;
         setTotals({ usd: sumUsd, bs: sumBs });
 
       } catch (err) {
