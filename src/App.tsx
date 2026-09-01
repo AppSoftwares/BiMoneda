@@ -11,6 +11,8 @@ import Profile from './views/Profile';
 import Dashboard from './views/Dashboard';
 import AddInvoice from './views/AddInvoice';
 import AddClient from './views/AddClient';
+import Clients from './views/Clients';
+import EditClient from './views/EditClient';
 import Invoices from './views/Invoices';
 import Invoice from './views/Invoice';
 import Crypto from './views/Crypto';
@@ -57,7 +59,9 @@ function App() {
             <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={session ? <Profile /> : <Navigate to="/login" replace />} />
             <Route path="/add-invoice" element={session ? <AddInvoice /> : <Navigate to="/login" replace />} />
+            <Route path="/clients" element={session ? <Clients /> : <Navigate to="/login" replace />} />
             <Route path="/add-client" element={session ? <AddClient /> : <Navigate to="/login" replace />} />
+            <Route path="/edit-client/:id" element={session ? <EditClient /> : <Navigate to="/login" replace />} />
             <Route path="/invoices" element={session ? <Invoices /> : <Navigate to="/login" replace />} />
             <Route path="/invoice/:id" element={session ? <Invoice /> : <Navigate to="/login" replace />} />
 

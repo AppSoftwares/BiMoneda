@@ -58,8 +58,13 @@ const AddInvoice: React.FC = () => {
     }
   }, [formData.subscriptionId, selectedSub]);
 
-  const ivaUsd = formData.amountUsd * 0.16;
-  const totalUsd = formData.amountUsd + ivaUsd;
+  // Tax Logic: IGTF 3% only for Zelle (Divisas). 0% for Pago Movil / Transfer (Bs).
+  const ivaPercent = 16;
+  const igtfPercent = formData.paymentMethod === 'Zelle' ? 3 : 0;
+
+  const ivaUsd = formData.amountUsd * (ivaPercent / 100);
+  const igtfUsd = (formData.amountUsd + ivaUsd) * (igtfPercent / 100);
+  const totalUsd = formData.amountUsd + ivaUsd + igtfUsd;
   const totalBs = totalUsd * formData.bcvRate;
 
   const calculateNextBilling = (date: Date, periodicity: string) => {
@@ -87,10 +92,10 @@ const AddInvoice: React.FC = () => {
         status: 'PAID',
         subtotal_usd: formData.amountUsd,
         taxable_base_usd: formData.amountUsd,
-        iva_percent: 16,
+        iva_percent: ivaPercent,
         iva_usd: ivaUsd,
-        igtf_percent: 0,
-        igtf_usd: 0,
+        igtf_percent: igtfPercent,
+        igtf_usd: igtfUsd,
         total_usd: totalUsd,
         total_bs: totalBs,
         bcv_rate: formData.bcvRate,
@@ -101,14 +106,13 @@ const AddInvoice: React.FC = () => {
 
       if (error) throw error;
 
-      // Update Next Billing Date in Subscription
       const nextDate = calculateNextBilling(new Date(), selectedSub.periodicity);
       await (supabase as any)
         .from('client_subscriptions')
         .update({ next_billing_date: nextDate })
         .eq('id', formData.subscriptionId);
 
-      alert('¡Factura emitida y próximo cobro actualizado!');
+      alert('¡Factura emitida exitosamente!');
       navigate(`/invoice/${invoice.id}`);
     } catch (err: any) {
       alert('Error: ' + err.message);
@@ -125,45 +129,42 @@ const AddInvoice: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-bold text-primary tracking-tight">Generate Digital Invoice</h1>
+        <h1 className="text-lg font-bold text-primary tracking-tight">Generar Factura</h1>
       </header>
 
       <main className="p-6 space-y-8 max-w-md mx-auto">
         <div className="space-y-6">
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Select Client</label>
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Seleccionar Cliente</label>
                 <select
                     value={formData.clientId}
                     onChange={(e) => setFormData({...formData, clientId: e.target.value})}
                     className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
                 >
-                    <option value="">-- Choose a client --</option>
+                    <option value="">-- Elige un cliente --</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Subscription Plan</label>
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Plan de Suscripción</label>
                 <select
                     value={formData.subscriptionId}
                     onChange={(e) => setFormData({...formData, subscriptionId: e.target.value})}
                     className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
                     disabled={!formData.clientId}
                 >
-                    <option value="">-- {formData.clientId ? 'Choose a plan' : 'Select a client first'} --</option>
+                    <option value="">-- {formData.clientId ? 'Elige un plan' : 'Selecciona un cliente primero'} --</option>
                     {subscriptions.map(s => (
                         <option key={s.id} value={s.id}>
                             {s.app_product} ({s.periodicity}) - ${s.amount_usd}
                         </option>
                     ))}
                 </select>
-                {formData.clientId && subscriptions.length === 0 && (
-                    <p className="text-[10px] text-amber-600 font-bold uppercase mt-1 ml-1">Este cliente no tiene suscripciones activas — agrégale una desde su ficha</p>
-                )}
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Amount (USD)</label>
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Monto (USD)</label>
                 <input
                     type="number"
                     value={formData.amountUsd}
@@ -173,9 +174,9 @@ const AddInvoice: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Payment Method</label>
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Método de Pago</label>
                 <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
-                    {['Zelle', 'Pago Móvil', 'Transfer'].map(m => (
+                    {['Zelle', 'Pago Móvil', 'Transferencia'].map(m => (
                         <button
                             key={m}
                             type="button"
@@ -184,10 +185,13 @@ const AddInvoice: React.FC = () => {
                         >{m}</button>
                     ))}
                 </div>
+                <p className="text-[9px] text-on-surface-variant italic mt-1 px-1">
+                    {igtfPercent > 0 ? '* Aplica IGTF (3%) por pago en divisas.' : '* Exento de IGTF por pago en moneda nacional.'}
+                </p>
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Reference Number</label>
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
                 <input
                     type="text"
                     placeholder="Ej. #998273"
@@ -200,7 +204,7 @@ const AddInvoice: React.FC = () => {
 
         {/* Invoice Preview Block */}
         <div className="space-y-4 pt-4">
-            <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] text-center">Document Preview</h2>
+            <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] text-center">Resumen del Documento</h2>
             <div className="bg-white rounded-lg border border-outline-variant shadow-level-2 p-6 space-y-4 relative overflow-hidden">
                 <div className="flex justify-between items-start border-b border-outline-variant/30 pb-4">
                     <div className="space-y-1">
@@ -209,54 +213,34 @@ const AddInvoice: React.FC = () => {
                         <div className="text-[9px] font-medium text-on-surface-variant">{selectedClient?.rif || '---'}</div>
                     </div>
                     <div className="text-right">
-                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Monto</span>
+                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Monto Total</span>
                         <div className="text-lg font-bold text-primary">${totalUsd.toFixed(2)}</div>
                         <div className="text-[10px] font-bold text-accent-sky">Bs. {totalBs.toLocaleString()}</div>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-[10px]">
+                <div className="grid grid-cols-3 gap-2 text-[9px] font-bold uppercase tracking-tight">
                     <div>
-                        <span className="text-on-surface-variant font-bold uppercase tracking-wider block">Plan</span>
-                        <span className="text-primary font-bold">{selectedSub?.app_product || '---'}</span>
+                        <span className="text-on-surface-variant block">Subtotal</span>
+                        <span className="text-primary">${formData.amountUsd.toFixed(2)}</span>
+                    </div>
+                    <div className="text-center">
+                        <span className="text-on-surface-variant block">IVA (16%)</span>
+                        <span className="text-primary">${ivaUsd.toFixed(2)}</span>
                     </div>
                     <div className="text-right">
-                        <span className="text-on-surface-variant font-bold uppercase tracking-wider block">Tasa BCV</span>
-                        <span className="text-primary font-bold">{formData.bcvRate.toFixed(2)}</span>
+                        <span className="text-on-surface-variant block">IGTF ({igtfPercent}%)</span>
+                        <span className="text-primary">${igtfUsd.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4 mt-4">
-            <button
-                type="button"
-                onClick={() => alert('Función "Enviar por WhatsApp" estará disponible al generar el PDF real.')}
-                className="flex items-center justify-center gap-2 py-4 bg-green-500 text-white rounded-md font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
-            >
-                <svg xmlns="http://www.w3.org/2000/swap" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.956-.5-5.715-1.448l-6.282 1.656zm6.331-4.145c1.455.863 3.041 1.319 4.658 1.32h.005c5.424 0 9.835-4.412 9.838-9.835.001-2.628-2.043-5.1-3.908-6.965s-4.337-3.907-6.966-3.908c-5.423 0-9.834 4.411-9.837 9.835-.001 1.744.457 3.447 1.323 4.965l-.499 1.823.587-.155z" />
-                </svg>
-                WhatsApp
-            </button>
-            <button
-                type="button"
-                onClick={() => alert('Función "Enviar por Email" estará disponible al generar el PDF real.')}
-                className="flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-md font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Email
-            </button>
-        </div>
-
         <button
           onClick={handleCreate}
           disabled={loading}
-          className="w-full bg-accent-sky text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50 mt-4"
+          className="w-full bg-primary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50 mt-4"
         >
-          {loading ? 'Processing...' : 'Issue Digital Invoice'}
+          {loading ? 'Procesando...' : 'Emitir Factura Digital'}
         </button>
       </main>
       <BottomNav />
