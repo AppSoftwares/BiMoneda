@@ -120,9 +120,5 @@ const Invoices: React.FC = () => {
     </div>
   );
 };
-      <BottomNav />
-    </div>
-  );
-};
 
 export default Invoices;

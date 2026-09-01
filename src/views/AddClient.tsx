@@ -133,9 +133,5 @@ const AddClient: React.FC = () => {
     </div>
   );
 };
-      <BottomNav />
-    </div>
-  );
-};
 
 export default AddClient;

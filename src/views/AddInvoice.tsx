@@ -204,9 +204,5 @@ const AddInvoice: React.FC = () => {
     </div>
   );
 };
-      <BottomNav />
-    </div>
-  );
-};
 
 export default AddInvoice;

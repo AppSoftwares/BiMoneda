@@ -8,6 +8,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [dbStatus, setDbStatus] = useState<'Checking...' | 'Connected' | 'Error'>('Checking...');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [totals, setTotals] = useState({ usd: 0, bs: 0 });
   const [counts, setCounts] = useState({ clients: 0, p2p: 0 });
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -189,14 +190,6 @@ const Dashboard: React.FC = () => {
               </div>
             ))}
           </div>
-        </section>
-      </main>
-      <BottomNav />
-    </div>
-  );
-};
-
-export default Dashboard;
         </section>
       </main>
       <BottomNav />
