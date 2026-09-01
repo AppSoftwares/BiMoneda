@@ -45,72 +45,165 @@ const Invoice: React.FC = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Company Header
-    doc.setFontSize(18);
-    doc.setTextColor(13, 43, 91);
-    doc.text(company?.name || "BiMoneda S.A.", 20, 20);
-
-    doc.setFontSize(9);
-    doc.setTextColor(100);
-    doc.text(`RIF: ${company?.rif || "J-00000000-0"}`, 20, 26);
-    doc.text(company?.address || "Caracas, Venezuela", 20, 31);
-    doc.text(`Tel: ${company?.phone || ""}`, 20, 36);
-
-    // Invoice Meta
-    doc.setFontSize(22);
-    doc.setTextColor(13, 43, 91);
-    doc.text("FACTURA", pageWidth - 20, 25, { align: 'right' });
-
-    doc.setFontSize(10);
-    doc.text(`N.º: ${invoice.invoice_number}`, pageWidth - 20, 32, { align: 'right' });
-    doc.text(`Fecha: ${new Date(invoice.issue_date).toLocaleDateString()}`, pageWidth - 20, 38, { align: 'right' });
-
-    // Client Info
-    doc.setFillColor(248, 250, 252);
-    doc.rect(20, 50, pageWidth - 40, 30, 'F');
-    doc.setTextColor(100);
-    doc.setFontSize(9);
-    doc.text("CLIENTE:", 25, 58);
-    doc.setTextColor(0);
-    doc.setFontSize(11);
-    doc.text(invoice.clients?.name || "Cliente Final", 25, 65);
-    doc.setFontSize(9);
-    doc.text(`RIF/CI: ${invoice.clients?.rif || "N/A"}`, 25, 71);
-
-    // Items Table
-    autoTable(doc, {
-      startY: 90,
-      head: [['Descripción', 'Monto USD', 'Monto Bs']],
-      body: [
-        [
-            invoice.concept || "Servicios Profesionales",
-            `$${invoice.subtotal_usd.toFixed(2)}`,
-            `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE')}`
-        ]
-      ],
-      headStyles: { fillColor: [13, 43, 91] },
-      theme: 'striped'
-    });
-
-    // Totals
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.setFontSize(10);
-    doc.text(`Subtotal: $${invoice.subtotal_usd.toFixed(2)}`, pageWidth - 25, finalY, { align: 'right' });
-    doc.text(`IVA (16%): $${invoice.iva_usd.toFixed(2)}`, pageWidth - 25, finalY + 6, { align: 'right' });
-    if (invoice.igtf_usd > 0) {
-        doc.text(`IGTF (3%): $${invoice.igtf_usd.toFixed(2)}`, pageWidth - 25, finalY + 12, { align: 'right' });
+    // 1. Professional Header (Grid Style)
+    if (company?.logo_url) {
+        doc.addImage(company.logo_url, 'PNG', 20, 15, 30, 30);
     }
 
-    doc.setFontSize(14);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(13, 43, 91);
-    doc.text(`TOTAL: $${invoice.total_usd.toFixed(2)}`, pageWidth - 25, finalY + 22, { align: 'right' });
-    doc.setFontSize(10);
-    doc.text(`(Bs. ${invoice.total_bs.toLocaleString()})`, pageWidth - 25, finalY + 28, { align: 'right' });
+    doc.text(company?.name?.toUpperCase() || "BIMONEDA S.A.", 55, 25);
 
-    // Footer
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(60);
+    doc.text(`RIF: ${company?.rif || "J-00000000-0"}`, 55, 31);
+    const splitAddress = doc.splitTextToSize(company?.address || "Dirección Fiscal de la Empresa", 80);
+    doc.text(splitAddress, 55, 36);
+    doc.text(`Teléfono: ${company?.phone || ""}`, 55, 48);
+
+    // Invoice Info Box (Top Right)
+    doc.setDrawColor(200);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(pageWidth - 85, 15, 65, 45, 2, 2);
+
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(13, 43, 91);
+    doc.text("FACTURA", pageWidth - 52.5, 28, { align: 'center' });
+
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text("N.º FACTURA:", pageWidth - 80, 40);
+    doc.setTextColor(200, 0, 0);
+    doc.text(invoice.invoice_number, pageWidth - 25, 40, { align: 'right' });
+
+    doc.setTextColor(0);
+    doc.text("N.º CONTROL:", pageWidth - 80, 48);
+    doc.setTextColor(200, 0, 0);
+    doc.text(invoice.control_number || "00-000000", pageWidth - 25, 48, { align: 'right' });
+
     doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text(`FECHA: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, pageWidth - 52.5, 56, { align: 'center' });
+
+    // 2. Client Details (Full Width Box)
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(20, 65, pageWidth - 40, 35, 1, 1, 'F');
+    doc.setDrawColor(220);
+    doc.roundedRect(20, 65, pageWidth - 40, 35, 1, 1, 'S');
+
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.setFont("helvetica", "bold");
+    doc.text("RAZÓN SOCIAL / NOMBRE:", 25, 72);
+    doc.text("RIF / C.I.:", 130, 72);
+
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text(invoice.clients?.name?.toUpperCase() || "CLIENTE FINAL", 25, 78);
+    doc.text(invoice.clients?.rif || "N/A", 130, 78);
+
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("DIRECCIÓN FISCAL:", 25, 86);
+    doc.setFontSize(9);
+    doc.setTextColor(0);
+    doc.setFont("helvetica", "normal");
+    const clientAddress = invoice.clients?.address || "Sin dirección registrada";
+    doc.text(doc.splitTextToSize(clientAddress, pageWidth - 55), 25, 92);
+
+    // 3. Items Table (Professional Layout)
+    autoTable(doc, {
+      startY: 105,
+      head: [['CANT', 'DESCRIPCIÓN / CONCEPTO', 'P. UNIT USD', 'IVA', 'SUBTOTAL USD']],
+      body: [
+        [
+            "1.00",
+            invoice.concept || "Servicio de Suscripción",
+            `$${invoice.subtotal_usd.toFixed(2)}`,
+            "16%",
+            `$${invoice.subtotal_usd.toFixed(2)}`
+        ]
+      ],
+      styles: { fontSize: 8, cellPadding: 4, font: 'helvetica' },
+      headStyles: { fillColor: [13, 43, 91], textColor: [255, 255, 255], fontStyle: 'bold' },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 },
+        1: { halign: 'left' },
+        2: { halign: 'right', cellWidth: 30 },
+        3: { halign: 'center', cellWidth: 20 },
+        4: { halign: 'right', cellWidth: 35 }
+      }
+    });
+
+    // 4. Summary and Taxes
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+
+    const labelX = pageWidth - 100;
+    const valueX = pageWidth - 20;
+
+    doc.text("SUBTOTAL:", labelX, finalY);
+    doc.text(`$${invoice.subtotal_usd.toFixed(2)}`, valueX, finalY, { align: 'right' });
+
+    doc.text("BASE IMPONIBLE (G 16.00%):", labelX, finalY + 6);
+    doc.text(`$${invoice.subtotal_usd.toFixed(2)}`, valueX, finalY + 6, { align: 'right' });
+
+    doc.text("IVA (16.00%):", labelX, finalY + 12);
+    doc.text(`$${invoice.iva_usd.toFixed(2)}`, valueX, finalY + 12, { align: 'right' });
+
+    if (invoice.igtf_usd > 0) {
+        doc.text("IGTF DIVISAS (3.00%):", labelX, finalY + 18);
+        doc.text(`$${invoice.igtf_usd.toFixed(2)}`, valueX, finalY + 18, { align: 'right' });
+    }
+
+    // Grand Total Block
+    const totalBoxY = finalY + (invoice.igtf_usd > 0 ? 24 : 18);
+    doc.setFillColor(13, 43, 91);
+    doc.rect(pageWidth - 105, totalBoxY, 85, 20, 'F');
+
+    doc.setTextColor(255);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL FACTURA (USD):", pageWidth - 100, totalBoxY + 12);
+    doc.setFontSize(16);
+    doc.text(`$${invoice.total_usd.toFixed(2)}`, pageWidth - 25, totalBoxY + 12.5, { align: 'right' });
+
+    // Bolivares Label
+    doc.setTextColor(0);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "italic");
+    doc.text("MONTO TOTAL EXPRESADO EN BOLÍVARES (VES):", pageWidth - 105, totalBoxY + 28);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Bs. ${invoice.total_bs.toLocaleString('es-VE')}`, pageWidth - 25, totalBoxY + 36, { align: 'right' });
+
+    // 5. BCV Rate and Legal Disclaimer
+    const footerY = 270;
+    doc.setDrawColor(200);
+    doc.line(20, footerY, pageWidth - 20, footerY);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100);
+    doc.text(`TASA BCV DEL DÍA: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, 20, footerY + 6);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Fecha Valor: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, 20, footerY + 11);
+
+    doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text("DOCUMENTO EMITIDO SEGÚN PROVIDENCIA SENIAT", pageWidth / 2, 280, { align: 'center' });
+    const legalNotice = "DOCUMENTO EMITIDO SEGÚN PROVIDENCIA SENIAT SNAT/2024/000102. ESTE COMPROBANTE DIGITAL ES VÁLIDO Y EXIGIBLE CONFORME A LA LEY SOBRE MENSAJES DE DATOS Y FIRMAS ELECTRÓNICAS. FIRMADO ELECTRÓNICAMENTE POR BIMONEDA APP.";
+    doc.text(doc.splitTextToSize(legalNotice, pageWidth - 50), pageWidth / 2, footerY + 20, { align: 'center' });
+
+    // Signature/Seal
+    if (company?.signature_url) {
+        doc.addImage(company.signature_url, 'PNG', (pageWidth / 2) - 15, footerY - 45, 30, 25);
+        doc.setFontSize(7);
+        doc.text("FIRMA AUTORIZADA Y SELLO DIGITAL", pageWidth / 2, footerY - 15, { align: 'center' });
+    }
 
     return doc;
   };

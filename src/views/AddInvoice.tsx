@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
+import { bcv } from '../services/BcvService';
 import BottomNav from '../components/BottomNav';
 
 const AddInvoice: React.FC = () => {
@@ -27,6 +28,14 @@ const AddInvoice: React.FC = () => {
         if (data) setClients(data);
     };
     fetchClients();
+  }, []);
+
+  useEffect(() => {
+    const updateRate = async () => {
+      const rate = await bcv.getLatestRate();
+      setFormData(prev => ({ ...prev, bcvRate: rate }));
+    };
+    updateRate();
   }, []);
 
   useEffect(() => {

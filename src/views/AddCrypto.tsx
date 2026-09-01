@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { accounting } from '../services/AccountingService';
 import { useLanguage } from '../context/LanguageContext';
+import { bcv } from '../services/BcvService';
 import BottomNav from '../components/BottomNav';
 
 const AddCrypto: React.FC = () => {
@@ -33,6 +34,14 @@ const AddCrypto: React.FC = () => {
     sourceMasked: '',
     destMasked: ''
   });
+
+  useEffect(() => {
+    const updateRate = async () => {
+      const rate = await bcv.getLatestRate();
+      setFormData(prev => ({ ...prev, bcvRate: rate }));
+    };
+    updateRate();
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
