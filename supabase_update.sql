@@ -59,3 +59,18 @@ CREATE TABLE IF NOT EXISTS public.bank_transfer_receipts (
 
 ALTER TABLE public.crypto_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.bank_transfer_receipts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+
+-- POLITICAS DE ACCESO (Permisivas para desarrollo, ajustar luego)
+-- Esto permite que cualquier usuario autenticado inserte y vea sus datos
+DROP POLICY IF EXISTS "Permitir todo a autenticados" ON public.crypto_operations;
+CREATE POLICY "Permitir todo a autenticados" ON public.crypto_operations FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir todo a autenticados" ON public.bank_transfer_receipts;
+CREATE POLICY "Permitir todo a autenticados" ON public.bank_transfer_receipts FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Permitir todo a autenticados" ON public.clients;
+CREATE POLICY "Permitir todo a autenticados" ON public.clients FOR ALL USING (true) WITH CHECK (true);
+
+-- Forzar recarga de cache de esquema
+NOTIFY pgrst, 'reload schema';

@@ -20,4 +20,11 @@ body {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Aumento de margen de seguridad para headers */
+header {
+  padding-top: 12px !important;
 }
