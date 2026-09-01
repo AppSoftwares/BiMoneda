@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
              </svg>
           </button>
           <div className="flex flex-col">
-              <h1 className="text-lg font-bold text-primary tracking-tight">Provider Dashboard</h1>
+              <h1 className="text-lg font-bold text-primary tracking-tight">{t('dash_title')}</h1>
               <div className="flex items-center gap-2">
                   <div className={`w-1.5 h-1.5 rounded-full ${dbStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'}`}></div>
                   <span className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest">{dbStatus}</span>
