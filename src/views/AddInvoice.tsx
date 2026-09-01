@@ -174,6 +174,7 @@ const AddInvoice: React.FC = () => {
         <div className="grid grid-cols-2 gap-4 mt-4">
             <button
                 type="button"
+                onClick={() => alert('Función "Enviar por WhatsApp" estará disponible al generar el PDF real.')}
                 className="flex items-center justify-center gap-2 py-4 bg-green-500 text-white rounded-md font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -183,6 +184,7 @@ const AddInvoice: React.FC = () => {
             </button>
             <button
                 type="button"
+                onClick={() => alert('Función "Enviar por Email" estará disponible al generar el PDF real.')}
                 className="flex items-center justify-center gap-2 py-4 bg-primary text-white rounded-md font-bold text-[11px] uppercase tracking-wider shadow-md active:scale-95 transition-all"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
