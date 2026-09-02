@@ -124,12 +124,13 @@ const EditClient: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Dirección</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Dirección Fiscal</label>
               <textarea
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
                 className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
                 rows={3}
+                required
               />
             </div>
 

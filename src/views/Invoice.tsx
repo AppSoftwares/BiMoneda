@@ -36,7 +36,7 @@ const Invoice: React.FC = () => {
 
         setCompany(compData);
       } catch (err) {
-        console.error(err);
+        console.error("Fetch error:", err);
       } finally {
         setLoading(false);
       }
@@ -44,213 +44,230 @@ const Invoice: React.FC = () => {
     fetchData();
   }, [id]);
 
+  const getBase64FromUrl = async (url: string): Promise<string> => {
+    try {
+      const data = await fetch(url);
+      const blob = await data.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+      });
+    } catch (e) {
+      return "";
+    }
+  };
+
   const generatePDF = async () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
-    // 1. Header: Company Info (Left)
-    if (company?.logo_url) {
-        try {
-            doc.addImage(company.logo_url, 'PNG', 20, 15, 30, 30);
-        } catch (e) {
-            console.error("Logo add failed", e);
-        }
+    // Prepare data
+    const logoBase64 = company?.logo_url ? await getBase64FromUrl(company.logo_url) : null;
+
+    // --- 1. COMPACT HEADER (GRID STYLE) ---
+    // Logo & Company Info (Left/Center)
+    if (logoBase64) {
+        try { doc.addImage(logoBase64, 'PNG', margin, 12, 28, 28); } catch (e) {}
     }
 
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(13, 43, 91); // Navy BIMONEDA
+    doc.text(company?.name?.toUpperCase() || "BIMONEDA S.A.", 48, 18);
+
+    doc.setFontSize(7.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(60);
+    doc.text(`RIF: ${company?.rif || "J-00000000-0"}`, 48, 22);
+    doc.text(`CÓDIGO ACTIVIDAD ECONÓMICA: ${company?.economic_activity_code || "9499"}`, 48, 25.5);
+
+    const emitterAddr = doc.splitTextToSize(company?.address || "Dirección Fiscal", 70);
+    doc.text(emitterAddr, 48, 29);
+    doc.text(`TELÉFONO: ${company?.phone || ""}  |  EMAIL: ${company?.email || ""}`, 48, 37);
+
+    // Meta Info Block (Far Right)
+    const metaX = pageWidth - 65;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(13, 43, 91);
-    doc.text(company?.name?.toUpperCase() || "BIMONEDA S.A.", 55, 22);
+    doc.text("FACTURA", metaX, 18);
 
     doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(60);
-    doc.text(`RIF: ${company?.rif || "J-00000000-0"}`, 55, 27);
-    doc.text(`CÓDIGO ACTIVIDAD ECONÓMICA: ${company?.economic_activity_code || "9499"}`, 55, 31);
-
-    const splitAddr = doc.splitTextToSize(company?.address || "Dirección Fiscal de la Empresa", 80);
-    doc.text(splitAddr, 55, 36);
-    doc.text(`TELÉFONO: ${company?.phone || ""}`, 55, 48);
-    doc.text(`EMAIL: ${company?.email || ""}`, 55, 52);
-
-    // 2. Invoice Meta Block (Right)
-    doc.setDrawColor(200);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(pageWidth - 85, 15, 65, 45, 1, 1, 'S');
-
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(13, 43, 91);
-    doc.text("FACTURA", pageWidth - 52.5, 28, { align: 'center' });
-
-    doc.setFontSize(10);
     doc.setTextColor(0);
-    doc.text("N.º DOCUMENTO:", pageWidth - 80, 38);
+    doc.text("N.º DOCUMENTO:", metaX, 24);
     doc.setTextColor(200, 0, 0); // RED
-    doc.text(invoice.invoice_number, pageWidth - 25, 38, { align: 'right' });
+    doc.text(invoice.invoice_number.toString(), pageWidth - margin, 24, { align: 'right' });
 
     doc.setTextColor(0);
-    doc.text("N.º CONTROL:", pageWidth - 80, 45);
-    doc.setTextColor(200, 0, 0);
-    doc.text(invoice.control_number || "00-000000", pageWidth - 25, 45, { align: 'right' });
+    doc.text("N.º CONTROL:", metaX, 28);
+    doc.setTextColor(200, 0, 0); // RED
+    doc.text((invoice.control_number || "00-000000").toString(), pageWidth - margin, 28, { align: 'right' });
 
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text(`FECHA EMISIÓN: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, pageWidth - 52.5, 53, { align: 'center' });
+    doc.setTextColor(80);
+    doc.setFont("helvetica", "normal");
+    doc.text(`FECHA EMISIÓN:`, metaX, 32);
+    doc.setTextColor(0);
+    doc.text(`${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, pageWidth - margin, 32, { align: 'right' });
 
-    // QR Code
+    doc.setTextColor(80);
+    doc.text(`HORA EMISIÓN:`, metaX, 36);
+    doc.setTextColor(0);
+    doc.text(`${(invoice.issue_time || "N/A").toString()}`, pageWidth - margin, 36, { align: 'right' });
+
+    // Tiny QR in corner
     try {
         const qrData = `RIF:${company?.rif}|CTRL:${invoice.control_number}|TOTAL:${invoice.total_usd}`;
         const qrUrl = await QRCode.toDataURL(qrData);
-        doc.addImage(qrUrl, 'PNG', pageWidth - 80, 62, 18, 18);
-    } catch (e) {
-        console.error("QR fail", e);
-    }
+        doc.addImage(qrUrl, 'PNG', pageWidth - margin - 15, 38, 15, 15);
+    } catch (e) {}
 
-    // 3. Client Block
-    doc.setFillColor(245, 247, 250);
-    doc.roundedRect(20, 85, pageWidth - 40, 38, 1, 1, 'F');
-    doc.setDrawColor(220);
-    doc.roundedRect(20, 85, pageWidth - 40, 38, 1, 1, 'S');
+    // Separator line
+    doc.setDrawColor(230);
+    doc.line(margin, 52, pageWidth - margin, 52);
 
-    doc.setFontSize(7);
+    // --- 2. CLIENT BLOCK ---
+    let yPos = 60;
+    doc.setFontSize(7.5);
     doc.setTextColor(100);
     doc.setFont("helvetica", "bold");
-    doc.text("DATOS DEL CLIENTE / RECEPTOR", 25, 91);
+    doc.text("DATOS DEL CLIENTE / RECEPTOR", margin, yPos);
 
-    doc.setFontSize(10);
+    yPos += 5;
+    doc.setFontSize(9);
     doc.setTextColor(0);
-    doc.text(`NOMBRE/RAZÓN SOCIAL: ${invoice.clients?.name?.toUpperCase() || "CLIENTE FINAL"}`, 25, 97);
-    doc.text(`RIF / C.I.: ${invoice.clients?.rif || "N/A"}`, 25, 103);
-    doc.text(`TELÉFONO: ${invoice.clients?.phone || "N/A"}`, 130, 103);
+    doc.text("NOMBRE / RAZÓN SOCIAL:", margin, yPos);
+    doc.setFont("helvetica", "bold");
+    doc.text((invoice.clients?.name?.toUpperCase() || "CLIENTE FINAL").toString(), margin + 45, yPos);
 
-    doc.text(`CONDICIÓN PAGO: ${invoice.payment_condition || "CONTADO"}`, 25, 109);
-    doc.text(`TIPO VENTA: ${invoice.sale_type || "INTERNA"}`, 130, 109);
-
-    doc.setFontSize(8);
-    doc.text("DIRECCIÓN FISCAL:", 25, 115);
+    yPos += 5;
     doc.setFont("helvetica", "normal");
-    const clAddr = doc.splitTextToSize(invoice.clients?.address || "N/A", pageWidth - 55);
-    doc.text(clAddr, 25, 120);
+    doc.text("DOMICILIO FISCAL:", margin, yPos);
+    const clientAddrLines = doc.splitTextToSize((invoice.clients?.address || "N/A").toString(), 85);
+    doc.text(clientAddrLines, margin + 45, yPos);
 
-    // 4. Items Table
+    const col2X = pageWidth / 2 + 15;
+    let yPos2 = 65;
+    doc.text("RIF / C.I.:", col2X, yPos2);
+    doc.setFont("helvetica", "bold");
+    doc.text((invoice.clients?.rif || "N/A").toString(), col2X + 35, yPos2, { align: 'right' });
+
+    yPos2 += 5;
+    doc.setFont("helvetica", "normal");
+    doc.text("TELÉFONO:", col2X, yPos2);
+    doc.text((invoice.clients?.phone || "N/A").toString(), col2X + 35, yPos2, { align: 'right' });
+
+    yPos2 += 5;
+    doc.text("CONDICIÓN PAGO:", col2X, yPos2);
+    doc.text((invoice.payment_condition || "CONTADO").toString(), col2X + 35, yPos2, { align: 'right' });
+
+    yPos2 += 5;
+    doc.text("TIPO VENTA:", col2X, yPos2);
+    doc.text((invoice.sale_type || "INTERNA").toString(), col2X + 35, yPos2, { align: 'right' });
+
+    // --- 3. ITEMS TABLE ---
     autoTable(doc, {
-      startY: 130,
-      head: [['Cant.', 'Código', 'Concepto / Descripción', 'Unid.', 'Precio Unit.', '% Desc.', 'Alíc.', 'Importe']],
+      startY: yPos + (clientAddrLines.length * 4) + 5,
+      head: [['Cant.', 'Código', 'Descripción del Concepto / Servicio', 'Unid.', 'P. Unit.', '% Desc.', 'Alíc.', 'Importe']],
       body: [
         [
             "1.00",
-            invoice.item_code || "SERV-01",
-            invoice.concept || "Servicio de Suscripción Digital",
-            invoice.item_unit || "SERVICIO",
+            (invoice.item_code || "SERV-01").toString(),
+            (invoice.concept || "Servicio Digital").toString(),
+            (invoice.item_unit || "SERVICIO").toString(),
             `$${invoice.subtotal_usd.toFixed(2)}`,
-            `${invoice.discount_percent || "0.00"}%`,
-            invoice.tax_aliquot || "G",
+            `${(invoice.discount_percent || "0.00").toString()}%`,
+            (invoice.tax_aliquot || "G").toString(),
             `$${invoice.subtotal_usd.toFixed(2)}`
         ]
       ],
-      styles: { fontSize: 7, cellPadding: 3 },
-      headStyles: { fillColor: [13, 43, 91], textColor: [255, 255, 255] },
+      styles: { fontSize: 7.5, cellPadding: 3, font: 'helvetica' },
+      headStyles: { fillColor: [13, 43, 91], textColor: [255, 255, 255], fontStyle: 'bold' },
       columnStyles: {
-        2: { cellWidth: 60 },
-        4: { halign: 'right' },
-        7: { halign: 'right' }
-      }
+        '2': { cellWidth: 55 },
+        '4': { halign: 'right' },
+        '7': { halign: 'right' }
+      },
+      margin: { left: margin, right: margin }
     });
 
-    // 5. Financial Summary
-    const finalTableY = (doc as any).lastAutoTable.finalY + 10;
+    // --- 4. FINANCIAL SUMMARY ---
+    const summaryY = (doc as any).lastAutoTable.finalY + 8;
     const summaryData = [
-        ["SUBTOTAL", `$${invoice.subtotal_usd.toFixed(2)}`, `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE')}`],
-        ["EXENTO (0%)", "$0.00", "Bs. 0,00"],
-        ["BASE IMPONIBLE (G 16.00%)", `$${invoice.subtotal_usd.toFixed(2)}`, `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE')}`],
-        ["IVA (16.00%)", `$${invoice.iva_usd.toFixed(2)}`, `Bs. ${(invoice.iva_usd * invoice.bcv_rate).toLocaleString('es-VE')}`],
+        ["SubTotal", `$${invoice.subtotal_usd.toFixed(2)}`, `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`],
+        ["Exento", "$0.00", "Bs. 0,00"],
+        ["Base Imponible 16%", `$${invoice.subtotal_usd.toFixed(2)}`, `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`],
+        ["IVA 16%", `$${invoice.iva_usd.toFixed(2)}`, `Bs. ${(invoice.iva_usd * invoice.bcv_rate).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`],
     ];
     if (invoice.igtf_usd > 0) {
-        summaryData.push(["IGTF DIVISAS (3.00%)", `$${invoice.igtf_usd.toFixed(2)}`, `Bs. ${(invoice.igtf_usd * invoice.bcv_rate).toLocaleString('es-VE')}`]);
+        summaryData.push(["IGTF 3%", `$${invoice.igtf_usd.toFixed(2)}`, `Bs. ${(invoice.igtf_usd * invoice.bcv_rate).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`]);
     }
 
     autoTable(doc, {
-        startY: finalTableY,
+        startY: summaryY,
         margin: { left: pageWidth - 120 },
         body: summaryData,
-        styles: { fontSize: 7, halign: 'right' },
-        columnStyles: { 0: { fontStyle: 'bold', halign: 'left' } },
+        styles: { fontSize: 8, halign: 'right', cellPadding: 1.5, font: 'helvetica' },
+        columnStyles: {
+            '0': { fontStyle: 'bold', halign: 'left', cellWidth: 40 },
+            '1': { cellWidth: 30 },
+            '2': { cellWidth: 35 }
+        },
         theme: 'plain'
     });
 
+    // Total Row
     const totalY = (doc as any).lastAutoTable.finalY + 2;
     doc.setFillColor(13, 43, 91);
-    doc.rect(pageWidth - 110, totalY, 90, 12, 'F');
+    doc.rect(pageWidth - 120, totalY, 105, 10, 'F');
     doc.setTextColor(255);
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text("TOTAL FACTURA:", pageWidth - 105, totalY + 8);
-    doc.text(`$${invoice.total_usd.toFixed(2)}`, pageWidth - 65, totalY + 8, { align: 'right' });
-    doc.text(`Bs. ${invoice.total_bs.toLocaleString('es-VE')}`, pageWidth - 25, totalY + 8, { align: 'right' });
+    doc.text("TOTAL", pageWidth - 115, totalY + 6.5);
+    doc.text(`$${invoice.total_usd.toFixed(2)}`, pageWidth - 60, totalY + 6.5, { align: 'right' });
+    doc.text(`Bs. ${invoice.total_bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`, pageWidth - margin - 5, totalY + 6.5, { align: 'right' });
 
-    // 6. ELEGANT BCV CARD (Requested Style)
-    const bcvCardX = 20;
-    const bcvCardY = pageHeight - 58;
-    const bcvCardWidth = 90;
-    const bcvCardHeight = 25;
-
-    // Card Background and Border (#F8F9FA, #E0E0E0)
-    doc.setFillColor(248, 249, 250);
-    doc.setDrawColor(224, 224, 224);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(bcvCardX, bcvCardY, bcvCardWidth, bcvCardHeight, 2, 2, 'FD');
-
-    // BCV Logo Placeholder (Simulating imgBcvLogo)
-    try {
-        doc.addImage('/logo-bcv.png', 'PNG', bcvCardX + 5, bcvCardY + 4, 15, 15);
-    } catch (e) {
-        // Just a circle if image missing
-        doc.setFillColor(220);
-        doc.circle(bcvCardX + 12.5, bcvCardY + 12.5, 6, 'F');
-    }
-
-    // Text Info (#2C3E50, #7F8C8D, #16A085)
-    doc.setTextColor(44, 62, 80);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text(`TASA BCV DEL DÍA: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, bcvCardX + 25, bcvCardY + 8);
-
-    doc.setTextColor(127, 140, 141);
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Fecha Valor: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, bcvCardX + 25, bcvCardY + 14);
-
-    doc.setTextColor(22, 160, 133);
-    doc.setFontSize(8.5);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Monto Ref. USD: $${invoice.total_usd.toFixed(2)}`, bcvCardX + 25, bcvCardY + 21);
-
-    // 7. Legal Footers
+    // --- 5. FOOTER ---
+    const footerY = pageHeight - 50;
     doc.setTextColor(0);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Tipo de cambio BCV a la fecha de emisión: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, margin, footerY);
+
     doc.setFontSize(7.5);
-    doc.text(`OBSERVACIONES: ${invoice.observations || "Ninguna."}`, 20, bcvCardY - 8);
+    doc.text(`OBSERVACIONES: ${(invoice.observations || "Ninguna.").toString()}`, margin, footerY + 6);
 
     doc.setFontSize(6.5);
-    doc.setTextColor(150);
+    doc.setTextColor(130);
     doc.setFont("helvetica", "italic");
-    const legal1 = doc.splitTextToSize(t('legal_igtf_disclaimer'), pageWidth - 40);
-    doc.text(legal1, 20, bcvCardY + 32);
-    const legal2 = doc.splitTextToSize(t('legal_currency_equivalence'), pageWidth - 40);
-    doc.text(legal2, 20, bcvCardY + 40);
+    const legal1 = doc.splitTextToSize(t('legal_igtf_disclaimer'), pageWidth - 30);
+    doc.text(legal1, margin, pageHeight - 32);
+    const legal2 = doc.splitTextToSize(t('legal_currency_equivalence'), pageWidth - 30);
+    doc.text(legal2, margin, pageHeight - 24);
 
-    // Signature Overlap
-    if (company?.signature_url) {
-        doc.addImage(company.signature_url, 'PNG', pageWidth - 60, bcvCardY + 5, 35, 25);
-    }
+    const certY = pageHeight - 10;
+    doc.setFontSize(6.5);
+    doc.setTextColor(150);
+    doc.setFont("helvetica", "normal");
+    const certInfo = company?.cert_provider_name
+        ? `PROVEEDOR DE CERTIFICADOS ${company.cert_provider_name} ${company.cert_provider_rif}. Providencia ${company.cert_provider_providence}.`
+        : "Documento generado digitalmente por FacturaPro VE. Numeración de control interna — pendiente de autorización de Imprenta Digital SENIAT.";
+    doc.text(doc.splitTextToSize(certInfo, pageWidth - 40), pageWidth / 2, certY, { align: 'center' });
 
     return doc;
   };
 
   const handleDownload = async () => {
-    const doc = await generatePDF();
-    doc.save(`Factura_${invoice.invoice_number}.pdf`);
+    try {
+        const doc = await generatePDF();
+        doc.save(`Factura_${invoice.invoice_number}.pdf`);
+    } catch (err) {
+        console.error("PDF generation failed:", err);
+        alert("Error al generar el PDF.");
+    }
   };
 
   const handleShare = async () => {
@@ -272,12 +289,12 @@ const Invoice: React.FC = () => {
         dialogTitle: 'Enviar Factura'
       });
     } catch (err) {
-      console.error('Error sharing:', err);
-      alert('Error al intentar compartir el archivo.');
+      const doc = await generatePDF();
+      doc.save(`Factura_${invoice.invoice_number}.pdf`);
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-primary font-bold">Cargando previsualización profesional...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-primary font-bold">Generando documento compacto...</div>;
   if (!invoice) return <div className="min-h-screen flex items-center justify-center bg-background">Factura no encontrada</div>;
 
   return (
@@ -304,13 +321,26 @@ const Invoice: React.FC = () => {
         </div>
       </header>
 
-      <main className="p-4 md:p-8 max-w-4xl mx-auto text-center py-20 opacity-50">
+      <main className="p-4 md:p-8 max-w-4xl mx-auto text-center py-20 opacity-60">
         <svg className="h-20 w-20 mx-auto text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" />
         </svg>
-        <p className="mt-4 font-black uppercase tracking-[0.3em] text-lg">Documento Generado</p>
-        <p className="text-xs font-bold mt-2">N.º Factura: {invoice.invoice_number}</p>
-        <p className="text-[10px] uppercase mt-4">Usa los botones superiores para descargar o compartir por WhatsApp/Email.</p>
+        <p className="mt-4 font-black uppercase tracking-[0.4em] text-xl">Factura Lista</p>
+        <p className="text-xs font-bold mt-2 tracking-widest">N.º {invoice.invoice_number}</p>
+        <div className="mt-12 bg-white p-6 rounded-xl border border-outline-variant/30 text-left space-y-4 max-w-sm mx-auto shadow-sm">
+            <div className="flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <span>Cliente</span>
+                <span className="text-primary">{invoice.clients?.name}</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest border-t border-outline-variant/20 pt-2">
+                <span>Total USD</span>
+                <span className="text-primary font-black">${invoice.total_usd.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <span>Total VES</span>
+                <span className="text-secondary font-black">Bs. {invoice.total_bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</span>
+            </div>
+        </div>
       </main>
     </div>
   );

@@ -13,6 +13,7 @@ const AddClient: React.FC = () => {
     rif: '',
     email: '',
     phone: '',
+    address: '',
     trial: false,
     subscriptions: [] as any[]
   });
@@ -56,6 +57,7 @@ const AddClient: React.FC = () => {
         rif: formData.rif.toUpperCase(),
         email: formData.email,
         phone: formData.phone,
+        address: formData.address,
         is_active: true
       }]).select().single();
 
@@ -118,6 +120,18 @@ const AddClient: React.FC = () => {
                 value={formData.rif}
                 onChange={(e) => setFormData({...formData, rif: e.target.value})}
                 className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Dirección Fiscal</label>
+              <textarea
+                placeholder="Ej. Av. Francisco de Miranda, Edif. Torre Caracas..."
+                value={formData.address}
+                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                rows={3}
                 required
               />
             </div>
