@@ -113,7 +113,7 @@ const EditClient: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">RIF</label>
+              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('rif_label')}</label>
               <input
                 type="text"
                 value={formData.rif}
