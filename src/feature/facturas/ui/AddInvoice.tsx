@@ -36,9 +36,14 @@ const AddInvoice: React.FC = () => {
 
   const updateRate = async () => {
     setFetchingRate(true);
-    const rate = await bcv.getLatestRate();
-    setFormData(prev => ({ ...prev, bcvRate: rate }));
-    setFetchingRate(false);
+    try {
+      const rate = await bcv.getLatestRate();
+      setFormData(prev => ({ ...prev, bcvRate: rate }));
+    } catch (e) {
+      alert('No se pudo actualizar la tasa BCV. Verifica tu conexión e intenta de nuevo.');
+    } finally {
+      setFetchingRate(false);
+    }
   };
 
   useEffect(() => {
@@ -98,9 +103,13 @@ const AddInvoice: React.FC = () => {
 
     setLoading(true);
     try {
-      // Re-fetch rate just before saving to ensure latest value
-      const finalRate = await bcv.getLatestRate();
-      const rateToUse = finalRate > 0 ? finalRate : formData.bcvRate;
+      let rateToUse = formData.bcvRate;
+      try {
+        rateToUse = await bcv.getLatestRate();
+      } catch (e) {
+        const confirmar = confirm('No se pudo obtener la tasa BCV más reciente. ¿Emitir la factura con la última tasa cargada (' + formData.bcvRate + ')?');
+        if (!confirmar) { setLoading(false); return; }
+      }
 
       const invoiceNumber = Math.floor(100000 + Math.random() * 900000).toString();
       const now = new Date();
@@ -120,8 +129,8 @@ const AddInvoice: React.FC = () => {
         iva_usd: ivaUsd,
         igtf_percent: igtfPercent,
         igtf_usd: igtfUsd,
-        total_usd: totalUsd,
-        total_bs: totalUsd * rateToUse,
+        total_usd: formData.amountUsd + ivaUsd + igtfUsd,
+        total_bs: (formData.amountUsd + ivaUsd + igtfUsd) * rateToUse,
         bcv_rate: rateToUse,
         payment_method: formData.paymentMethod,
         payment_condition: formData.paymentCondition,
@@ -236,37 +245,15 @@ const AddInvoice: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Tasa BCV Automática</label>
-                    <div className="relative">
-                        <input
-                            type="number"
-                            value={formData.bcvRate}
-                            readOnly
-                            className="w-full bg-surface-container-low border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-bold outline-none"
-                        />
-                        <button
-                            type="button"
-                            onClick={updateRate}
-                            className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 text-secondary active:scale-90 transition-all ${fetchingRate ? 'animate-spin' : ''}`}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
-                    <input
-                        type="text"
-                        placeholder="Ej. #998273"
-                        value={formData.reference}
-                        onChange={(e) => setFormData({...formData, reference: e.target.value})}
-                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
-                    />
-                </div>
+            <div className="space-y-2">
+                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
+                <input
+                    type="text"
+                    placeholder="Ej. #998273"
+                    value={formData.reference}
+                    onChange={(e) => setFormData({...formData, reference: e.target.value})}
+                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
+                />
             </div>
 
             <div className="space-y-2">
