@@ -238,8 +238,8 @@ const AddClient: React.FC = () => {
 
             <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant flex items-center justify-between shadow-level-1">
               <div className="space-y-1">
-                  <span className="text-sm font-bold text-primary">Enable 1-Month Free Trial</span>
-                  <p className="text-[10px] text-on-surface-variant font-medium uppercase leading-tight">Enjoy all features. No credit card required.</p>
+                  <span className="text-sm font-bold text-primary">{t('trial_title')}</span>
+                  <p className="text-[10px] text-on-surface-variant font-medium uppercase leading-tight">{t('trial_desc')}</p>
               </div>
               <button
                   type="button"

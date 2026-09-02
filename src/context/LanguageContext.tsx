@@ -115,6 +115,8 @@ const translations = {
     call_admin: "Llamar a Administración",
     legal_igtf_disclaimer: "Este pago estará sujeto al cobro adicional del 3% del Impuesto a las Grandes Transacciones Financieras (IGTF), de conformidad con la Providencia Administrativa SNAT/2022/000013 publicada en la G.O. N.º 42.339 del 17-03-2022, en caso de ser cancelado en divisas. No aplica en pago en Bs.",
     legal_currency_equivalence: "Este documento se expresa en divisas con su equivalente en Bolívares al tipo de cambio corriente del mercado a la fecha de su emisión, según lo establecido en el artículo 13 numeral 14 de la Providencia Administrativa SNAT/2011/0071 en concordancia con el artículo 128 de la Ley del Banco Central de Venezuela (BCV); artículo 25 de la Ley que establece el Impuesto al Valor Agregado (IVA) y 38 del Reglamento General de la Ley que establece el Impuesto al Valor Agregado (RLIVA).",
+    trial_title: "Activar Prueba Gratuita de 1 Mes",
+    trial_desc: "Disfruta de todas las funciones. No se requiere tarjeta de crédito.",
   },
   en: {
     splash_title: "Your billing in its smartest version.",
@@ -219,6 +221,8 @@ const translations = {
     direct_contact: "Direct Contact",
     office_hours: "Monday to Friday: 8:00 AM - 5:00 PM",
     call_admin: "Call Administration",
+    trial_title: "Enable 1-Month Free Trial",
+    trial_desc: "Enjoy all features. No credit card required.",
   }
 };
 
