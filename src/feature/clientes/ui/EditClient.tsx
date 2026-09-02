@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../lib/db';
-import { useLanguage } from '../context/LanguageContext';
-import BottomNav from '../components/BottomNav';
+import { supabase } from '../../../data/db/supabase';
+import { useLanguage } from '../../../core/context/LanguageContext';
+import BottomNav from '../../../core/nav/BottomNav';
 
 const EditClient: React.FC = () => {
   const navigate = useNavigate();

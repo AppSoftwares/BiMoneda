@@ -1,5 +1,5 @@
 import Big from 'big.js';
-import { supabase } from '../lib/db';
+import { supabase } from '../../../data/db/supabase';
 
 export interface CryptoOp {
   type: 'COMPRA' | 'VENTA';

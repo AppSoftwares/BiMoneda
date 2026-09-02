@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/db';
-import { useLanguage } from '../context/LanguageContext';
-import { bcv } from '../services/BcvService';
-import BottomNav from '../components/BottomNav';
+import { supabase } from '../../../data/db/supabase';
+import { useLanguage } from '../../../core/context/LanguageContext';
+import { bcv } from '../../../data/repository/BcvService';
+import BottomNav from '../../../core/nav/BottomNav';
 
 const AddInvoice: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const [fetchingRate, setFetchingRate] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
 
@@ -33,11 +34,14 @@ const AddInvoice: React.FC = () => {
     fetchClients();
   }, []);
 
+  const updateRate = async () => {
+    setFetchingRate(true);
+    const rate = await bcv.getLatestRate();
+    setFormData(prev => ({ ...prev, bcvRate: rate }));
+    setFetchingRate(false);
+  };
+
   useEffect(() => {
-    const updateRate = async () => {
-      const rate = await bcv.getLatestRate();
-      setFormData(prev => ({ ...prev, bcvRate: rate }));
-    };
     updateRate();
   }, []);
 
@@ -94,6 +98,10 @@ const AddInvoice: React.FC = () => {
 
     setLoading(true);
     try {
+      // Re-fetch rate just before saving to ensure latest value
+      const finalRate = await bcv.getLatestRate();
+      const rateToUse = finalRate > 0 ? finalRate : formData.bcvRate;
+
       const invoiceNumber = Math.floor(100000 + Math.random() * 900000).toString();
       const now = new Date();
 
@@ -113,8 +121,8 @@ const AddInvoice: React.FC = () => {
         igtf_percent: igtfPercent,
         igtf_usd: igtfUsd,
         total_usd: totalUsd,
-        total_bs: totalBs,
-        bcv_rate: formData.bcvRate,
+        total_bs: totalUsd * rateToUse,
+        bcv_rate: rateToUse,
         payment_method: formData.paymentMethod,
         payment_condition: formData.paymentCondition,
         sale_type: formData.saleType,
@@ -228,6 +236,39 @@ const AddInvoice: React.FC = () => {
                 </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Tasa BCV Automática</label>
+                    <div className="relative">
+                        <input
+                            type="number"
+                            value={formData.bcvRate}
+                            readOnly
+                            className="w-full bg-surface-container-low border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-bold outline-none"
+                        />
+                        <button
+                            type="button"
+                            onClick={updateRate}
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 text-secondary active:scale-90 transition-all ${fetchingRate ? 'animate-spin' : ''}`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
+                    <input
+                        type="text"
+                        placeholder="Ej. #998273"
+                        value={formData.reference}
+                        onChange={(e) => setFormData({...formData, reference: e.target.value})}
+                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
+                    />
+                </div>
+            </div>
+
             <div className="space-y-2">
                 <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Observaciones</label>
                 <input
@@ -235,17 +276,6 @@ const AddInvoice: React.FC = () => {
                     placeholder="Ej. Comisiones Varias"
                     value={formData.observations}
                     onChange={(e) => setFormData({...formData, observations: e.target.value})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
-                <input
-                    type="text"
-                    placeholder="Ej. #998273"
-                    value={formData.reference}
-                    onChange={(e) => setFormData({...formData, reference: e.target.value})}
                     className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
                 />
             </div>
@@ -264,7 +294,7 @@ const AddInvoice: React.FC = () => {
                     <div className="text-right">
                         <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Monto Total</span>
                         <div className="text-lg font-bold text-primary">${totalUsd.toFixed(2)}</div>
-                        <div className="text-[10px] font-bold text-accent-sky">Bs. {totalBs.toLocaleString()}</div>
+                        <div className="text-[10px] font-bold text-accent-sky">Bs. {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
                     </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-[9px] font-bold uppercase tracking-tight">
@@ -286,7 +316,7 @@ const AddInvoice: React.FC = () => {
 
         <button
           onClick={handleCreate}
-          disabled={loading}
+          disabled={loading || fetchingRate}
           className="w-full bg-primary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50 mt-4"
         >
           {loading ? 'Procesando...' : 'Emitir Factura Digital'}

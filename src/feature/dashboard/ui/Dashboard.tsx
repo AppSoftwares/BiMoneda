@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/db';
-import { useLanguage } from '../context/LanguageContext';
-import { bcv } from '../services/BcvService';
-import BottomNav from '../components/BottomNav';
+import { supabase } from '../../../data/db/supabase';
+import { useLanguage } from '../../../core/context/LanguageContext';
+import { bcv } from '../../../data/repository/BcvService';
+import BottomNav from '../../../core/nav/BottomNav';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();

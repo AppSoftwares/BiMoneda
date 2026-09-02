@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/db';
+import { supabase } from '../../../data/db/supabase';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import BottomNav from '../components/BottomNav';
+import BottomNav from '../../../core/nav/BottomNav';
 
 const Books: React.FC = () => {
   const navigate = useNavigate();

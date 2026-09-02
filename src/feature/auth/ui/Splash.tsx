@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../../../core/context/LanguageContext';
 
 const Splash: React.FC = () => {
   const navigate = useNavigate();

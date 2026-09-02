@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/db';
-import { useLanguage } from '../context/LanguageContext';
+import { supabase } from '../../../data/db/supabase';
+import { useLanguage } from '../../../core/context/LanguageContext';
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
