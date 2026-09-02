@@ -86,7 +86,7 @@ const Invoice: React.FC = () => {
 
     doc.setFontSize(10);
     doc.setTextColor(0);
-    doc.text("N.º FACTURA:", pageWidth - 80, 38);
+    doc.text("N.º DOCUMENTO:", pageWidth - 80, 38);
     doc.setTextColor(200, 0, 0); // RED
     doc.text(invoice.invoice_number, pageWidth - 25, 38, { align: 'right' });
 
@@ -99,7 +99,7 @@ const Invoice: React.FC = () => {
     doc.setTextColor(100);
     doc.text(`FECHA EMISIÓN: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, pageWidth - 52.5, 53, { align: 'center' });
 
-    // QR Code for Verification
+    // QR Code
     try {
         const qrData = `RIF:${company?.rif}|CTRL:${invoice.control_number}|TOTAL:${invoice.total_usd}`;
         const qrUrl = await QRCode.toDataURL(qrData);
@@ -159,7 +159,7 @@ const Invoice: React.FC = () => {
       }
     });
 
-    // 5. Financial Summary (Dual Currency)
+    // 5. Financial Summary
     const finalTableY = (doc as any).lastAutoTable.finalY + 10;
     const summaryData = [
         ["SUBTOTAL", `$${invoice.subtotal_usd.toFixed(2)}`, `Bs. ${(invoice.subtotal_usd * invoice.bcv_rate).toLocaleString('es-VE')}`],
@@ -190,39 +190,44 @@ const Invoice: React.FC = () => {
     doc.text(`$${invoice.total_usd.toFixed(2)}`, pageWidth - 65, totalY + 8, { align: 'right' });
     doc.text(`Bs. ${invoice.total_bs.toLocaleString('es-VE')}`, pageWidth - 25, totalY + 8, { align: 'right' });
 
-    // 6. BCV Card (Bottom Left)
+    // 6. ELEGANT BCV CARD (Requested Style)
     const bcvCardX = 20;
-    const bcvCardY = pageHeight - 55;
-    const bcvCardWidth = 85;
-    const bcvCardHeight = 22;
+    const bcvCardY = pageHeight - 58;
+    const bcvCardWidth = 90;
+    const bcvCardHeight = 25;
 
+    // Card Background and Border (#F8F9FA, #E0E0E0)
     doc.setFillColor(248, 249, 250);
-    doc.setDrawColor(224);
+    doc.setDrawColor(224, 224, 224);
+    doc.setLineWidth(0.3);
     doc.roundedRect(bcvCardX, bcvCardY, bcvCardWidth, bcvCardHeight, 2, 2, 'FD');
 
-    // BCV Logo (Assumed in public folder)
+    // BCV Logo Placeholder (Simulating imgBcvLogo)
     try {
-        doc.addImage('/logo-bcv.png', 'PNG', bcvCardX + 5, bcvCardY + 4, 12, 12);
+        doc.addImage('/logo-bcv.png', 'PNG', bcvCardX + 5, bcvCardY + 4, 15, 15);
     } catch (e) {
-        console.warn("BCV Logo not found at /logo-bcv.png");
+        // Just a circle if image missing
+        doc.setFillColor(220);
+        doc.circle(bcvCardX + 12.5, bcvCardY + 12.5, 6, 'F');
     }
 
+    // Text Info (#2C3E50, #7F8C8D, #16A085)
     doc.setTextColor(44, 62, 80);
-    doc.setFontSize(8.5);
+    doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text(`TASA BCV DEL DÍA: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, bcvCardX + 22, bcvCardY + 7);
+    doc.text(`TASA BCV DEL DÍA: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, bcvCardX + 25, bcvCardY + 8);
 
     doc.setTextColor(127, 140, 141);
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "normal");
-    doc.text(`Fecha Valor: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, bcvCardX + 22, bcvCardY + 12);
+    doc.text(`Fecha Valor: ${new Date(invoice.issue_date).toLocaleDateString('es-VE')}`, bcvCardX + 25, bcvCardY + 14);
 
     doc.setTextColor(22, 160, 133);
-    doc.setFontSize(7.5);
+    doc.setFontSize(8.5);
     doc.setFont("helvetica", "bold");
-    doc.text(`Monto Ref. USD: $${invoice.total_usd.toFixed(2)}`, bcvCardX + 22, bcvCardY + 17);
+    doc.text(`Monto Ref. USD: $${invoice.total_usd.toFixed(2)}`, bcvCardX + 25, bcvCardY + 21);
 
-    // 7. Observations and Legal
+    // 7. Legal Footers
     doc.setTextColor(0);
     doc.setFontSize(7.5);
     doc.text(`OBSERVACIONES: ${invoice.observations || "Ninguna."}`, 20, bcvCardY - 8);
@@ -231,13 +236,13 @@ const Invoice: React.FC = () => {
     doc.setTextColor(150);
     doc.setFont("helvetica", "italic");
     const legal1 = doc.splitTextToSize(t('legal_igtf_disclaimer'), pageWidth - 40);
-    doc.text(legal1, 20, bcvCardY + 30);
+    doc.text(legal1, 20, bcvCardY + 32);
     const legal2 = doc.splitTextToSize(t('legal_currency_equivalence'), pageWidth - 40);
-    doc.text(legal2, 20, bcvCardY + 38);
+    doc.text(legal2, 20, bcvCardY + 40);
 
     // Signature Overlap
     if (company?.signature_url) {
-        doc.addImage(company.signature_url, 'PNG', pageWidth - 60, bcvCardY + 5, 30, 20);
+        doc.addImage(company.signature_url, 'PNG', pageWidth - 60, bcvCardY + 5, 35, 25);
     }
 
     return doc;
@@ -272,18 +277,18 @@ const Invoice: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-primary font-bold">Cargando...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-primary font-bold">Cargando previsualización profesional...</div>;
   if (!invoice) return <div className="min-h-screen flex items-center justify-center bg-background">Factura no encontrada</div>;
 
   return (
-    <div className="min-h-screen bg-background pb-12 font-inter">
+    <div className="min-h-screen bg-background pb-12 font-inter text-primary">
       {/* Top Bar */}
       <header className="sticky top-0 z-40 bg-white border-b border-outline-variant/30 px-6 h-16 flex items-center justify-between shadow-sm">
         <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary active:scale-90 transition-transform flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
-          <span className="text-sm font-bold uppercase tracking-tight">Detalle de Factura</span>
+          <span className="text-sm font-bold uppercase tracking-tight">Factura Legal</span>
         </button>
         <div className="flex gap-2">
             <button onClick={handleShare} className="p-2 bg-surface-container-low text-primary rounded-lg border border-outline-variant/30 active:scale-90 transition-all">
@@ -299,12 +304,13 @@ const Invoice: React.FC = () => {
         </div>
       </header>
 
-      <main className="p-4 md:p-8 max-w-4xl mx-auto text-center py-20 opacity-40">
+      <main className="p-4 md:p-8 max-w-4xl mx-auto text-center py-20 opacity-50">
         <svg className="h-20 w-20 mx-auto text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" />
         </svg>
-        <p className="mt-4 font-bold uppercase tracking-[0.3em]">Documento Listo</p>
-        <p className="text-xs">Usa los botones de arriba para exportar.</p>
+        <p className="mt-4 font-black uppercase tracking-[0.3em] text-lg">Documento Generado</p>
+        <p className="text-xs font-bold mt-2">N.º Factura: {invoice.invoice_number}</p>
+        <p className="text-[10px] uppercase mt-4">Usa los botones superiores para descargar o compartir por WhatsApp/Email.</p>
       </main>
     </div>
   );
