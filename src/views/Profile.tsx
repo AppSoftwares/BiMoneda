@@ -215,7 +215,7 @@ const Profile: React.FC = () => {
 
                 <div className="flex justify-between items-center pt-2">
                    <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest">Logo</span>
-                   <button onClick={() => setActiveSection('main')} className="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-1 bg-surface-container-low rounded border border-secondary/30">Edit</button>
+                   <button onClick={() => fileInputRef.current?.click()} className="text-[10px] font-bold text-secondary uppercase tracking-widest px-3 py-1 bg-surface-container-low rounded border border-secondary/30 active:scale-95 transition-all">Adjuntar Logo</button>
                 </div>
               </div>
 
