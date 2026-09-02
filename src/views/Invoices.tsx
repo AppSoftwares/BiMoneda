@@ -14,13 +14,13 @@ const Invoices: React.FC = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const { data, error } = await supabase
+        const { data: invData } = await supabase
           .from('invoices')
           .select('*, clients(name)')
           .order('issue_date', { ascending: false });
 
         if (error) throw error;
-        setInvoices(data || []);
+        setInvoices(invData || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -46,7 +46,7 @@ const Invoices: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <h1 className="text-xl font-bold text-primary tracking-tight">Facturas Recientes</h1>
+            <h1 className="text-xl font-bold text-primary tracking-tight">{t('invoices_title')}</h1>
         </div>
         <button
             onClick={() => navigate('/books')}
@@ -62,11 +62,11 @@ const Invoices: React.FC = () => {
       <main className="p-6 space-y-8 max-w-md mx-auto">
         <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-4 rounded-lg border border-outline-variant shadow-level-1">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Total Pagado</span>
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">{t('total_paid')}</span>
                 <div className="text-lg font-bold text-green-600">${totalPaid.toFixed(2)}</div>
             </div>
             <div className="bg-white p-4 rounded-lg border border-outline-variant shadow-level-1">
-                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Total Pendiente</span>
+                <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">{t('total_pending')}</span>
                 <div className="text-lg font-bold text-amber-600">${totalPending.toFixed(2)}</div>
             </div>
         </div>
@@ -96,17 +96,17 @@ const Invoices: React.FC = () => {
                 className={`p-5 flex justify-between items-center ${i !== filteredInvoices.length - 1 ? 'border-b border-outline-variant/30' : ''} active:bg-surface-container-low transition-all`}
             >
                 <div className="space-y-1 flex-1">
-                  <div className="font-bold text-primary text-sm tracking-tight">{inv.clients?.name || 'Cliente Final'}</div>
+                  <div className="font-bold text-primary text-sm tracking-tight uppercase">{inv.clients?.name || 'Cliente Final'}</div>
                   <div className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider flex items-center gap-2">
                     <span>#INV-{inv.invoice_number}</span>
                     <span className="opacity-30">|</span>
-                    <span>{new Date(inv.issue_date).toLocaleDateString()}</span>
+                    <span>{new Date(inv.issue_date).toLocaleDateString('es-VE')}</span>
                   </div>
                 </div>
                 <div className="text-right flex items-center gap-4">
                     <div className="flex flex-col items-end gap-1">
                         <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ${inv.status === 'PAID' ? 'bg-green-100 text-green-700' : inv.status === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                            {inv.status}
+                            {t(`status_${inv.status.toLowerCase()}`)}
                         </span>
                         <div className="text-sm font-bold text-primary">${inv.total_usd.toFixed(2)}</div>
                     </div>

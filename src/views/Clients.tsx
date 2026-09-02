@@ -45,7 +45,7 @@ const Clients: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <h1 className="text-xl font-bold text-primary tracking-tight">Mis Clientes</h1>
+            <h1 className="text-xl font-bold text-primary tracking-tight">{t('clients_title')}</h1>
         </div>
       </header>
 
@@ -54,7 +54,7 @@ const Clients: React.FC = () => {
         <div className="relative">
             <input
                 type="text"
-                placeholder="Buscar por nombre o RIF..."
+                placeholder={t('search_placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-white border border-outline-variant rounded-md px-12 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
@@ -67,9 +67,9 @@ const Clients: React.FC = () => {
         {/* List */}
         <div className="bg-white rounded-lg border border-outline-variant shadow-level-1 overflow-hidden">
           {loading ? (
-            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px] animate-pulse">Cargando clientes...</div>
+            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px] animate-pulse">{t('loading_clients')}</div>
           ) : filteredClients.length === 0 ? (
-            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px]">No se encontraron clientes</div>
+            <div className="p-10 text-center text-on-surface-variant font-medium uppercase tracking-widest text-[10px]">{t('no_clients_found')}</div>
           ) : filteredClients.map((client, i) => (
             <div
                 key={client.id}
@@ -81,7 +81,7 @@ const Clients: React.FC = () => {
                   <div className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider flex items-center gap-2">
                     <span>{client.rif}</span>
                     <span className="opacity-30">|</span>
-                    <span>{client.phone || 'Sin teléfono'}</span>
+                    <span>{client.phone || t('no_phone')}</span>
                   </div>
                 </div>
                 <div className="text-secondary">

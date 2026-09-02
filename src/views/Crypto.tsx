@@ -55,11 +55,11 @@ const Crypto: React.FC = () => {
       head: [['Concepto', 'Detalle']],
       body: [
         ['Activo', op.asset],
-        ['Tipo', op.type],
+        ['Tipo', op.type === 'COMPRA' ? t('type_buy') : t('type_sell')],
         ['Cantidad', op.amount_crypto.toString()],
-        ['Precio (Bs)', op.unit_price_bs.toLocaleString()],
-        ['Total (Bs)', op.total_amount_bs.toLocaleString()],
-        ['Fecha', new Date(op.date).toLocaleDateString()],
+        ['Precio (Bs)', op.unit_price_bs.toLocaleString('es-VE')],
+        ['Total (Bs)', op.total_amount_bs.toLocaleString('es-VE')],
+        ['Fecha', new Date(op.date).toLocaleDateString('es-VE')],
         ['Plataforma', op.platform],
         ['Binance Order', op.order_number_binance || 'N/A'],
         ['Contraparte', op.counterparty_nickname || '---']
@@ -89,7 +89,7 @@ const Crypto: React.FC = () => {
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString()} producto de la liquidación de ${op.amount_crypto} ${op.asset} en la plataforma ${op.platform} con fecha ${new Date(op.date).toLocaleDateString()}.`;
+    const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString('es-VE')} producto de la liquidación de ${op.amount_crypto} ${op.asset} en la plataforma ${op.platform} con fecha ${new Date(op.date).toLocaleDateString('es-VE')}.`;
     const certSplit = doc.splitTextToSize(certText, pageWidth - 40);
     doc.text(certSplit, 20, 40);
 
@@ -119,35 +119,35 @@ const Crypto: React.FC = () => {
         </button>
 
         <div className="space-y-4">
-          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] ml-2">Historial P2P</h2>
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] ml-2">{t('p2p_history')}</h2>
           <div className="bg-white dark:bg-white/5 rounded-[40px] border border-gray-100 dark:border-white/10 shadow-sm overflow-hidden">
             {loading ? (
-                <div className="p-10 text-center animate-pulse text-gray-300 font-bold uppercase tracking-widest text-[10px]">Sincronizando...</div>
+                <div className="p-10 text-center animate-pulse text-gray-300 font-bold uppercase tracking-widest text-[10px]">{t('syncing')}</div>
             ) : ops.length === 0 ? (
-                <div className="p-10 text-center text-gray-300 font-bold uppercase tracking-widest text-[10px]">No hay operaciones registradas</div>
+                <div className="p-10 text-center text-gray-300 font-bold uppercase tracking-widest text-[10px]">{t('no_ops_found')}</div>
             ) : ops.map((op) => (
                 <div key={op.id} className="p-6 border-b border-gray-50 dark:border-white/5 flex justify-between items-center active:bg-gray-50 transition-colors">
                    <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase ${op.type === 'COMPRA' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                            {op.type}
+                            {op.type === 'COMPRA' ? t('type_buy') : t('type_sell')}
                         </span>
                         <span className="font-black text-primary dark:text-white uppercase tracking-tighter">{op.asset}</span>
                         <span className="text-[10px] font-black text-accent-gold opacity-60">|</span>
-                        <span className="text-[11px] font-black text-primary dark:text-white tracking-tight">{maskName(op.counterparty_nickname || op.counterparty_full_name)}</span>
+                        <span className="text-[11px] font-black text-primary dark:text-white tracking-tight uppercase">{maskName(op.counterparty_nickname || op.counterparty_full_name)}</span>
                       </div>
                       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                        <span>{new Date(op.date).toLocaleDateString()}</span>
+                        <span>{new Date(op.date).toLocaleDateString('es-VE')}</span>
                         <span className="opacity-30">|</span>
                         <span>{op.platform}</span>
                         {op.order_status === 'ESPERANDO_PAGO' && (
-                            <span className="bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded-md font-black animate-pulse">PENDIENTE</span>
+                            <span className="bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded-md font-black animate-pulse uppercase">{t('status_pending')}</span>
                         )}
                       </div>
                    </div>
                    <div className="text-right flex flex-col items-end gap-2">
                       <div className="text-sm font-black text-primary dark:text-white">${op.amount_crypto.toFixed(2)}</div>
-                      <div className="text-[9px] font-bold text-accent-gold uppercase italic">Bs. {op.total_amount_bs.toLocaleString()}</div>
+                      <div className="text-[9px] font-bold text-accent-gold uppercase italic">Bs. {op.total_amount_bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
                       <button
                         onClick={(e) => { e.stopPropagation(); exportReport(op); }}
                         className="bg-primary text-white p-1.5 rounded-lg active:scale-90 transition-transform"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/db';
 import { useLanguage } from '../context/LanguageContext';
+import { bcv } from '../services/BcvService';
 import BottomNav from '../components/BottomNav';
 
 const Dashboard: React.FC = () => {
@@ -12,6 +13,7 @@ const Dashboard: React.FC = () => {
   const [totals, setTotals] = useState({ usd: 0, bs: 0 });
   const [counts, setCounts] = useState({ clients: 0, p2p: 0 });
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [currentRate, setCurrentRate] = useState<number>(36.00);
 
   useEffect(() => {
     const init = async () => {
@@ -52,6 +54,10 @@ const Dashboard: React.FC = () => {
         const sumBs = (allInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_bs || 0), 0) || 0;
         setTotals({ usd: sumUsd, bs: sumBs });
 
+        // Fetch Rate
+        const rate = await bcv.getLatestRate();
+        setCurrentRate(rate);
+
       } catch (err) {
         setDbStatus('Error');
       }
@@ -59,17 +65,19 @@ const Dashboard: React.FC = () => {
     init();
   }, []);
 
-  const currentMonth = new Intl.DateTimeFormat('es-VE', { month: 'short' }).format(new Date());
+  const currentMonth = new Intl.DateTimeFormat('es-VE', { month: 'short' }).format(new Date()).toUpperCase();
 
   return (
     <div className="min-h-screen bg-background font-inter pb-32 dark:bg-[#0b1c30]">
       {/* Top Bar */}
       <header className="bg-white px-6 h-20 flex items-center justify-between shadow-level-1 sticky top-0 z-50 dark:bg-[#0d2b5b] dark:border-b dark:border-white/10">
         <div className="flex flex-col">
-            <h1 className="text-lg font-bold text-primary tracking-tight dark:text-white">{t('dash_title')}</h1>
+            <h1 className="text-lg font-bold text-primary tracking-tight dark:text-white uppercase">{t('dash_title')}</h1>
             <div className="flex items-center gap-2">
                 <div className={`w-1.5 h-1.5 rounded-full ${dbStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest dark:text-white/60">{dbStatus}</span>
+                <span className="text-[10px] font-medium text-on-surface-variant uppercase tracking-widest dark:text-white/60">
+                    {dbStatus === 'Connected' ? t('status_connected') : dbStatus}
+                </span>
             </div>
         </div>
         <button
@@ -93,24 +101,24 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 dark:bg-white/5 dark:border-white/10">
               <div className="flex items-center gap-2 mb-3">
-                <div className="bg-surface-container-low text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-primary/10 dark:bg-white/10 dark:text-white">$ USD</div>
+                <div className="bg-surface-container-low text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-primary/10 dark:bg-white/10 dark:text-white uppercase">$ USD</div>
               </div>
-              <div className="text-xl font-bold text-primary tracking-tight dark:text-white">${totals.usd.toLocaleString()}</div>
+              <div className="text-xl font-bold text-primary tracking-tight dark:text-white">${totals.usd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
               <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('total_earned')} ({currentMonth})</p>
             </div>
 
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 dark:bg-white/5 dark:border-white/10">
               <div className="flex items-center gap-2 mb-3">
-                <div className="bg-surface-container-low text-secondary text-[10px] font-bold px-2 py-0.5 rounded border border-secondary/10 dark:bg-white/10 dark:text-secondary">Bs VEF</div>
+                <div className="bg-surface-container-low text-secondary text-[10px] font-bold px-2 py-0.5 rounded border border-secondary/10 dark:bg-white/10 dark:text-secondary uppercase">Bs VEF</div>
               </div>
-              <div className="text-xl font-bold text-secondary tracking-tight">{totals.bs.toLocaleString()}</div>
-              <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">Tasa BCV: 36.00</p>
+              <div className="text-xl font-bold text-secondary tracking-tight">{totals.bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
+              <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('bcv_rate')}: {currentRate.toFixed(2)}</p>
             </div>
           </div>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] ml-1 dark:text-secondary">Subscription Summary</h2>
+          <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] ml-1 dark:text-secondary">{t('sub_summary')}</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 flex flex-col items-center dark:bg-white/5 dark:border-white/10">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mb-3 dark:bg-secondary">
@@ -118,7 +126,7 @@ const Dashboard: React.FC = () => {
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.07 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a7 7 0 00-7 7v1h11v-1a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 text-center dark:text-white/60">Active Clients</span>
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 text-center dark:text-white/60">{t('active_clients')}</span>
               <span className="text-2xl font-bold text-primary dark:text-white">{counts.clients}</span>
             </div>
 
@@ -128,7 +136,7 @@ const Dashboard: React.FC = () => {
                    <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                 </svg>
               </div>
-              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 text-center dark:text-white/60">P2P Today</span>
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 text-center dark:text-white/60">{t('p2p_today')}</span>
               <span className="text-2xl font-bold text-primary dark:text-white">{counts.p2p}</span>
             </div>
           </div>
@@ -154,7 +162,7 @@ const Dashboard: React.FC = () => {
                 className={`p-5 flex justify-between items-center ${i !== invoices.length - 1 ? 'border-b border-outline-variant/30' : ''} active:bg-surface-container-low transition-all cursor-pointer dark:active:bg-white/10`}
               >
                 <div className="space-y-1">
-                  <div className="font-bold text-primary text-sm tracking-tight dark:text-white">{inv.clients?.name || 'Cliente Final'}</div>
+                  <div className="font-bold text-primary text-sm tracking-tight dark:text-white uppercase">{inv.clients?.name || 'Cliente Final'}</div>
                   <div className="text-[10px] font-medium text-on-surface-variant uppercase tracking-wider flex items-center gap-2 dark:text-white/40">
                     <span>#INV-{inv.invoice_number}</span>
                     <span className="opacity-30">|</span>
@@ -164,7 +172,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex items-center gap-3">
                    <div className="text-right">
                       <div className="text-sm font-bold text-primary dark:text-white">${inv.total_usd.toFixed(2)}</div>
-                      <div className="text-[9px] font-medium text-on-surface-variant italic dark:text-white/40">Bs. {inv.total_bs.toLocaleString()}</div>
+                      <div className="text-[9px] font-medium text-on-surface-variant italic dark:text-white/40">Bs. {inv.total_bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
                    </div>
                    {inv.status === 'PAID' ? (
                       <div className="text-green-500">
