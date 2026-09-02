@@ -183,7 +183,7 @@ const Invoice: React.FC = () => {
         ]
       ],
       styles: { fontSize: 7.5, cellPadding: 3, font: 'helvetica' },
-      headStyles: { fillColor: [248, 248, 248], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, drawColor: [200, 200, 200] },
+      headStyles: { fillColor: [248, 248, 248], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1 },
       columnStyles: {
         '2': { cellWidth: 55, halign: 'justify' }, // JUSTIFIED
         '4': { halign: 'right' },

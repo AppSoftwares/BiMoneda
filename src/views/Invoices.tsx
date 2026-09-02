@@ -14,13 +14,13 @@ const Invoices: React.FC = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const { data: invData } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('invoices')
           .select('*, clients(name)')
           .order('issue_date', { ascending: false });
 
-        if (error) throw error;
-        setInvoices(invData || []);
+        if (fetchError) throw fetchError;
+        setInvoices(data || []);
       } catch (err) {
         console.error(err);
       } finally {
