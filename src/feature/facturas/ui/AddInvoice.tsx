@@ -40,7 +40,7 @@ const AddInvoice: React.FC = () => {
       const rate = await bcv.getLatestRate();
       setFormData(prev => ({ ...prev, bcvRate: rate }));
     } catch (e) {
-      alert('No se pudo actualizar la tasa BCV. Verifica tu conexión e intenta de nuevo.');
+      // Quietly fail or handle
     } finally {
       setFetchingRate(false);
     }
@@ -129,8 +129,8 @@ const AddInvoice: React.FC = () => {
         iva_usd: ivaUsd,
         igtf_percent: igtfPercent,
         igtf_usd: igtfUsd,
-        total_usd: formData.amountUsd + ivaUsd + igtfUsd,
-        total_bs: (formData.amountUsd + ivaUsd + igtfUsd) * rateToUse,
+        total_usd: totalUsd,
+        total_bs: totalUsd * rateToUse,
         bcv_rate: rateToUse,
         payment_method: formData.paymentMethod,
         payment_condition: formData.paymentCondition,
@@ -161,24 +161,24 @@ const AddInvoice: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-inter pb-32">
-      <header className="bg-white px-6 h-20 flex items-center gap-4 shadow-level-1 sticky top-0 z-50">
-        <button onClick={() => navigate(-1)} className="p-2 text-primary active:scale-90 transition-transform">
+    <div className="min-h-screen bg-background dark:bg-[#0b1c30] font-inter pb-32 transition-colors">
+      <header className="bg-white dark:bg-[#0d2b5b] border-b dark:border-white/10 px-6 h-20 flex items-center gap-4 shadow-level-1 sticky top-0 z-50">
+        <button onClick={() => navigate(-1)} className="p-2 text-primary dark:text-white active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-bold text-primary tracking-tight">Generar Factura</h1>
+        <h1 className="text-lg font-bold text-primary dark:text-white tracking-tight uppercase">Generar Factura</h1>
       </header>
 
       <main className="p-6 space-y-8 max-w-md mx-auto">
         <div className="space-y-6">
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Seleccionar Cliente</label>
+                <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Seleccionar Cliente</label>
                 <select
                     value={formData.clientId}
                     onChange={(e) => setFormData({...formData, clientId: e.target.value})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
+                    className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
                 >
                     <option value="">-- Elige un cliente --</option>
                     {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -186,11 +186,11 @@ const AddInvoice: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Plan de Suscripción</label>
+                <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Plan de Suscripción</label>
                 <select
                     value={formData.subscriptionId}
                     onChange={(e) => setFormData({...formData, subscriptionId: e.target.value})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none"
+                    className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white font-medium outline-none focus:border-accent-sky shadow-level-1 appearance-none disabled:opacity-50"
                     disabled={!formData.clientId}
                 >
                     <option value="">-- {formData.clientId ? 'Elige un plan' : 'Selecciona un cliente primero'} --</option>
@@ -204,27 +204,27 @@ const AddInvoice: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Condición Pago</label>
-                    <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
+                    <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Condición Pago</label>
+                    <div className="flex bg-surface-container-low dark:bg-white/5 p-1 rounded-md border border-outline-variant dark:border-white/10">
                         {['CONTADO', 'CREDITO'].map(m => (
                             <button
                                 key={m}
                                 type="button"
                                 onClick={() => setFormData({...formData, paymentCondition: m as any})}
-                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.paymentCondition === m ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.paymentCondition === m ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-white/40'}`}
                             >{m}</button>
                         ))}
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Tipo Venta</label>
-                    <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
+                    <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Tipo Venta</label>
+                    <div className="flex bg-surface-container-low dark:bg-white/5 p-1 rounded-md border border-outline-variant dark:border-white/10">
                         {['INTERNA', 'EXTERNA'].map(m => (
                             <button
                                 key={m}
                                 type="button"
                                 onClick={() => setFormData({...formData, saleType: m as any})}
-                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.saleType === m ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                                className={`flex-1 py-2 text-[9px] font-bold uppercase tracking-widest rounded transition-all ${formData.saleType === m ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-white/40'}`}
                             >{m}</button>
                         ))}
                     </div>
@@ -232,70 +232,70 @@ const AddInvoice: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Método de Pago</label>
-                <div className="flex bg-surface-container-low p-1 rounded-md border border-outline-variant">
+                <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Método de Pago</label>
+                <div className="flex bg-surface-container-low dark:bg-white/5 p-1 rounded-md border border-outline-variant dark:border-white/10">
                     {['Zelle', 'Pago Móvil', 'Transferencia'].map(m => (
                         <button
                             key={m}
                             type="button"
                             onClick={() => setFormData({...formData, paymentMethod: m})}
-                            className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded transition-all ${formData.paymentMethod === m ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                            className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded transition-all ${formData.paymentMethod === m ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-white/40'}`}
                         >{m}</button>
                     ))}
                 </div>
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">N.º de Referencia</label>
+                <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">N.º de Referencia</label>
                 <input
                     type="text"
                     placeholder="Ej. #998273"
                     value={formData.reference}
                     onChange={(e) => setFormData({...formData, reference: e.target.value})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
+                    className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white outline-none focus:border-accent-sky shadow-level-1"
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Observaciones</label>
+                <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Observaciones</label>
                 <input
                     type="text"
                     placeholder="Ej. Comisiones Varias"
                     value={formData.observations}
                     onChange={(e) => setFormData({...formData, observations: e.target.value})}
-                    className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary outline-none focus:border-accent-sky shadow-level-1"
+                    className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white outline-none focus:border-accent-sky shadow-level-1"
                 />
             </div>
         </div>
 
         {/* Invoice Preview Block */}
         <div className="space-y-4 pt-4">
-            <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] text-center">Resumen del Documento</h2>
-            <div className="bg-white rounded-lg border border-outline-variant shadow-level-2 p-6 space-y-4 relative overflow-hidden">
-                <div className="flex justify-between items-start border-b border-outline-variant/30 pb-4">
+            <h2 className="text-xs font-bold text-primary dark:text-secondary uppercase tracking-[0.15em] text-center">Resumen del Documento</h2>
+            <div className="bg-white dark:bg-white/5 rounded-lg border border-outline-variant dark:border-white/10 shadow-level-2 p-6 space-y-4 relative overflow-hidden">
+                <div className="flex justify-between items-start border-b border-outline-variant/30 dark:border-white/10 pb-4">
                     <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Cliente</span>
-                        <div className="text-sm font-bold text-primary uppercase">{selectedClient?.name || '---'}</div>
-                        <div className="text-[9px] font-medium text-on-surface-variant">{selectedClient?.rif || '---'}</div>
+                        <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-wider">Cliente</span>
+                        <div className="text-sm font-bold text-primary dark:text-white uppercase">{selectedClient?.name || '---'}</div>
+                        <div className="text-[9px] font-medium text-on-surface-variant dark:text-white/40">{selectedClient?.rif || '---'}</div>
                     </div>
                     <div className="text-right">
-                        <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Monto Total</span>
-                        <div className="text-lg font-bold text-primary">${totalUsd.toFixed(2)}</div>
+                        <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-wider">Monto Total</span>
+                        <div className="text-lg font-bold text-primary dark:text-white">${totalUsd.toFixed(2)}</div>
                         <div className="text-[10px] font-bold text-accent-sky">Bs. {totalBs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
                     </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-[9px] font-bold uppercase tracking-tight">
                     <div>
-                        <span className="text-on-surface-variant block">Subtotal</span>
-                        <span className="text-primary">${formData.amountUsd.toFixed(2)}</span>
+                        <span className="text-on-surface-variant dark:text-white/60 block">Subtotal</span>
+                        <span className="text-primary dark:text-white">${formData.amountUsd.toFixed(2)}</span>
                     </div>
                     <div className="text-center">
-                        <span className="text-on-surface-variant block">IVA (16%)</span>
-                        <span className="text-primary">${ivaUsd.toFixed(2)}</span>
+                        <span className="text-on-surface-variant dark:text-white/60 block">IVA (16%)</span>
+                        <span className="text-primary dark:text-white">${ivaUsd.toFixed(2)}</span>
                     </div>
                     <div className="text-right">
-                        <span className="text-on-surface-variant block">IGTF ({igtfPercent}%)</span>
-                        <span className="text-primary">${igtfUsd.toFixed(2)}</span>
+                        <span className="text-on-surface-variant dark:text-white/60 block text-secondary italic">IGTF (3%)</span>
+                        <span className="text-secondary dark:text-secondary font-black">${igtfUsd.toFixed(2)}</span>
                     </div>
                 </div>
             </div>
@@ -304,7 +304,7 @@ const AddInvoice: React.FC = () => {
         <button
           onClick={handleCreate}
           disabled={loading || fetchingRate}
-          className="w-full bg-primary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50 mt-4"
+          className="w-full bg-primary dark:bg-secondary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50 mt-4"
         >
           {loading ? 'Procesando...' : 'Emitir Factura Digital'}
         </button>

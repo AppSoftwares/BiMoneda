@@ -20,7 +20,7 @@ const EditClient: React.FC = () => {
 
   useEffect(() => {
     const fetchClient = async () => {
-      const { data, error } = await (supabase as any)
+      const { data } = await supabase
         .from('clients')
         .select('*')
         .eq('id', id || '')
@@ -28,11 +28,11 @@ const EditClient: React.FC = () => {
 
       if (data) {
         setFormData({
-          name: (data as any).name,
-          rif: (data as any).rif,
-          email: (data as any).email || '',
-          phone: (data as any).phone || '',
-          address: (data as any).address || '',
+          name: data.name,
+          rif: data.rif,
+          email: data.email || '',
+          phone: data.phone || '',
+          address: data.address || '',
         });
       }
     };
@@ -43,7 +43,7 @@ const EditClient: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await (supabase as any).from('clients').update({
+      const { error } = await supabase.from('clients').update({
         name: formData.name,
         rif: formData.rif.toUpperCase(),
         email: formData.email,
@@ -65,7 +65,7 @@ const EditClient: React.FC = () => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.')) return;
     setDeleting(true);
     try {
-      const { error } = await (supabase as any).from('clients').delete().eq('id', id || '');
+      const { error } = await supabase.from('clients').delete().eq('id', id || '');
       if (error) throw error;
       alert('Cliente eliminado correctamente.');
       navigate('/clients');
@@ -77,20 +77,20 @@ const EditClient: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-inter pb-32">
-      <header className="bg-white px-6 h-20 flex items-center justify-between shadow-level-1 sticky top-0 z-50">
+    <div className="min-h-screen bg-background dark:bg-[#0b1c30] font-inter pb-32 transition-colors">
+      <header className="bg-white dark:bg-[#0d2b5b] border-b dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-level-1 sticky top-0 z-50">
         <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="p-2 text-primary active:scale-90 transition-transform">
+            <button onClick={() => navigate(-1)} className="p-2 text-primary dark:text-white active:scale-90 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <h1 className="text-xl font-bold text-primary tracking-tight">Editar Cliente</h1>
+            <h1 className="text-xl font-bold text-primary dark:text-white tracking-tight">Editar Cliente</h1>
         </div>
         <button
             onClick={handleDelete}
             disabled={deleting}
-            className="text-red-500 p-2 active:scale-90 transition-transform"
+            className="text-red-500 dark:text-red-400 p-2 active:scale-90 transition-transform"
         >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -102,33 +102,33 @@ const EditClient: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Nombre / Razón Social</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Nombre / Razón Social</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky outline-none shadow-sm"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('rif_label')}</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">{t('rif_label')}</label>
               <input
                 type="text"
                 value={formData.rif}
                 onChange={(e) => setFormData({...formData, rif: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky outline-none shadow-sm"
                 required
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Dirección Fiscal</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Dirección Fiscal</label>
               <textarea
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky outline-none shadow-sm"
                 rows={3}
                 required
               />
@@ -136,21 +136,21 @@ const EditClient: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Teléfono</label>
+                    <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Teléfono</label>
                     <input
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
+                        className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky outline-none shadow-sm"
                     />
                 </div>
                 <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Email</label>
+                    <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Email</label>
                     <input
                         type="email"
                         value={formData.email}
                         onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky outline-none shadow-sm"
+                        className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky outline-none shadow-sm"
                     />
                 </div>
             </div>
@@ -159,7 +159,7 @@ const EditClient: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
+            className="w-full bg-primary dark:bg-secondary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
           >
             {loading ? 'Guardando...' : 'Guardar Cambios'}
           </button>

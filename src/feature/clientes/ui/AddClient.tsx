@@ -87,85 +87,85 @@ const AddClient: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background font-inter pb-32">
-      <header className="bg-white px-6 h-20 flex items-center gap-4 shadow-level-1 sticky top-0 z-50">
-        <button onClick={() => navigate(-1)} className="p-2 text-primary active:scale-90 transition-transform">
+    <div className="min-h-screen bg-background dark:bg-[#0b1c30] font-inter pb-32 transition-colors">
+      <header className="bg-white dark:bg-[#0d2b5b] border-b dark:border-white/10 px-6 h-20 flex items-center gap-4 shadow-level-1 sticky top-0 z-50">
+        <button onClick={() => navigate(-1)} className="p-2 text-primary dark:text-white active:scale-90 transition-transform">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-bold text-primary tracking-tight">{t('register_client_title')}</h1>
+        <h1 className="text-lg font-bold text-primary dark:text-white tracking-tight">{t('register_client_title')}</h1>
       </header>
 
       <main className="p-6 max-w-md mx-auto">
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('client_name_label')}</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">{t('client_name_label')}</label>
               <input
                 type="text"
                 placeholder="Ej. Inversiones 2024 C.A."
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('rif_label')}</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">{t('rif_label')}</label>
               <input
                 type="text"
                 placeholder="V-12345678-9"
                 value={formData.rif}
                 onChange={(e) => setFormData({...formData, rif: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Dirección Fiscal</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">Dirección Fiscal</label>
               <textarea
                 placeholder="Ej. Av. Francisco de Miranda, Edif. Torre Caracas..."
                 value={formData.address}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
                 rows={3}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('email_label')}</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">{t('email_label')}</label>
               <input
                 type="email"
                 placeholder="cliente@ejemplo.com"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">{t('phone_label')}</label>
+              <label className="text-[11px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest ml-1">{t('phone_label')}</label>
               <input
                 type="tel"
                 placeholder="+58 412-0000000"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full bg-white border border-outline-variant rounded-md px-5 py-4 text-sm text-primary focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
+                className="w-full bg-white dark:bg-white/10 border border-outline-variant dark:border-white/20 rounded-md px-5 py-4 text-sm text-primary dark:text-white focus:border-accent-sky focus:ring-4 focus:ring-accent-sky/10 outline-none transition-all shadow-level-1"
               />
             </div>
 
             <div className="pt-4 space-y-4">
               <div className="flex justify-between items-center px-1">
-                <h3 className="text-xs font-bold text-primary uppercase tracking-widest">Suscripción</h3>
+                <h3 className="text-xs font-bold text-primary dark:text-secondary uppercase tracking-widest">Suscripción</h3>
                 <button type="button" onClick={addSubSlot} className="text-[10px] font-bold text-secondary uppercase tracking-widest">+ Agregar otra</button>
               </div>
 
               {formData.subscriptions.map((sub, index) => (
-                <div key={index} className="bg-white border border-outline-variant rounded-lg p-5 space-y-4 shadow-sm relative">
+                <div key={index} className="bg-white dark:bg-white/5 border border-outline-variant dark:border-white/10 rounded-lg p-5 space-y-4 shadow-sm relative">
                   <button
                     type="button"
                     onClick={() => {
@@ -180,7 +180,7 @@ const AddClient: React.FC = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">App</label>
+                      <label className="text-[9px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">App</label>
                       <select
                         value={sub.app}
                         onChange={e => {
@@ -188,7 +188,7 @@ const AddClient: React.FC = () => {
                           newSubs[index].app = e.target.value;
                           setFormData({ ...formData, subscriptions: newSubs });
                         }}
-                        className="w-full bg-surface-container-low p-2.5 rounded text-xs font-bold text-primary"
+                        className="w-full bg-surface-container-low dark:bg-white/10 p-2.5 rounded text-xs font-bold text-primary dark:text-white"
                       >
                         <option value="CONDOMINIO">Condominio</option>
                         <option value="EASY_GO">Easy Go</option>
@@ -196,7 +196,7 @@ const AddClient: React.FC = () => {
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Monto (USD)</label>
+                      <label className="text-[9px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Monto (USD)</label>
                       <input
                         type="number"
                         value={sub.amount}
@@ -205,13 +205,13 @@ const AddClient: React.FC = () => {
                           newSubs[index].amount = e.target.value;
                           setFormData({ ...formData, subscriptions: newSubs });
                         }}
-                        className="w-full bg-surface-container-low p-2.5 rounded text-xs font-bold text-primary"
+                        className="w-full bg-surface-container-low dark:bg-white/10 p-2.5 rounded text-xs font-bold text-primary dark:text-white"
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest ml-1">Periodicidad</label>
-                    <div className="flex bg-surface-container-low p-1 rounded border border-outline-variant/30 overflow-x-auto gap-1">
+                    <label className="text-[9px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Periodicidad</label>
+                    <div className="flex bg-surface-container-low dark:bg-white/10 p-1 rounded border border-outline-variant/30 dark:border-white/5 overflow-x-auto gap-1">
                         {['SEMANAL', 'MENSUAL', 'SEMESTRAL', 'ANUAL'].map(p => (
                             <button
                                 key={p}
@@ -221,7 +221,7 @@ const AddClient: React.FC = () => {
                                   newSubs[index].periodicity = p;
                                   setFormData({ ...formData, subscriptions: newSubs });
                                 }}
-                                className={`flex-1 min-w-[70px] py-2 text-[8px] font-bold uppercase rounded transition-all ${sub.periodicity === p ? 'bg-white text-primary shadow-sm' : 'text-on-surface-variant'}`}
+                                className={`flex-1 min-w-[70px] py-2 text-[8px] font-bold uppercase rounded transition-all ${sub.periodicity === p ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-sm' : 'text-on-surface-variant dark:text-white/40'}`}
                             >{p}</button>
                         ))}
                     </div>
@@ -230,21 +230,21 @@ const AddClient: React.FC = () => {
               ))}
 
               {formData.subscriptions.length === 0 && (
-                <div className="bg-surface-container-low border border-dashed border-outline-variant p-6 rounded-lg text-center">
-                   <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest">Sin suscripciones iniciales</p>
+                <div className="bg-surface-container-low dark:bg-white/5 border border-dashed border-outline-variant dark:border-white/10 p-6 rounded-lg text-center">
+                   <p className="text-[10px] text-on-surface-variant dark:text-white/40 font-medium uppercase tracking-widest">Sin suscripciones iniciales</p>
                 </div>
               )}
             </div>
 
-            <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant flex items-center justify-between shadow-level-1">
+            <div className="bg-surface-container-low dark:bg-white/5 p-6 rounded-lg border border-outline-variant dark:border-white/10 flex items-center justify-between shadow-level-1">
               <div className="space-y-1">
-                  <span className="text-sm font-bold text-primary">{t('trial_title')}</span>
-                  <p className="text-[10px] text-on-surface-variant font-medium uppercase leading-tight">{t('trial_desc')}</p>
+                  <span className="text-sm font-bold text-primary dark:text-white">{t('trial_title')}</span>
+                  <p className="text-[10px] text-on-surface-variant dark:text-white/40 font-medium uppercase leading-tight">{t('trial_desc')}</p>
               </div>
               <button
                   type="button"
                   onClick={() => setFormData({...formData, trial: !formData.trial})}
-                  className={`w-12 h-7 rounded-full transition-all flex items-center px-1 ${formData.trial ? 'bg-accent-sky' : 'bg-outline-variant'}`}
+                  className={`w-12 h-7 rounded-full transition-all flex items-center px-1 ${formData.trial ? 'bg-accent-sky dark:bg-secondary' : 'bg-outline-variant dark:bg-white/10'}`}
               >
                   <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${formData.trial ? 'translate-x-5' : 'translate-x-0'}`}></div>
               </button>
@@ -254,7 +254,7 @@ const AddClient: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
+            className="w-full bg-primary dark:bg-secondary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
           >
             {loading ? 'Procesando...' : t('btn_register')}
           </button>
