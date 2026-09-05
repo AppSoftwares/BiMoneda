@@ -20,7 +20,7 @@ const EditClient: React.FC = () => {
 
   useEffect(() => {
     const fetchClient = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('clients')
         .select('*')
         .eq('id', id || '')
@@ -28,8 +28,8 @@ const EditClient: React.FC = () => {
 
       if (data) {
         setFormData({
-          name: data.name,
-          rif: data.rif,
+          name: data.name || '',
+          rif: data.rif || '',
           email: data.email || '',
           phone: data.phone || '',
           address: data.address || '',
@@ -43,7 +43,7 @@ const EditClient: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('clients').update({
+      const { error } = await (supabase as any).from('clients').update({
         name: formData.name,
         rif: formData.rif.toUpperCase(),
         email: formData.email,
@@ -65,7 +65,7 @@ const EditClient: React.FC = () => {
     if (!window.confirm('¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.')) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.from('clients').delete().eq('id', id || '');
+      const { error } = await (supabase as any).from('clients').delete().eq('id', id || '');
       if (error) throw error;
       alert('Cliente eliminado correctamente.');
       navigate('/clients');
@@ -85,7 +85,7 @@ const EditClient: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
-            <h1 className="text-xl font-bold text-primary dark:text-white tracking-tight">Editar Cliente</h1>
+            <h1 className="text-xl font-bold text-primary dark:text-white tracking-tight uppercase">Editar Cliente</h1>
         </div>
         <button
             onClick={handleDelete}
