@@ -15,60 +15,75 @@ const Dashboard: React.FC = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(36.00);
 
+  // Filter State
+  const [filterMonth, setFilterMonth] = useState(new Date().getMonth() + 1);
+  const [filterYear, setFilterYear] = useState(new Date().getFullYear());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+
   useEffect(() => {
-    const init = async () => {
-      try {
-        setDbStatus('Connected');
-
-        // Fetch User Info
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.user_metadata?.avatar_url) {
-          setAvatarUrl(user.user_metadata.avatar_url);
-        }
-
-        // Fetch Recent Invoices
-        const { data: invData } = await (supabase as any)
-          .from('invoices')
-          .select('*, clients(name)')
-          .order('issue_date', { ascending: false })
-          .limit(5);
-        if (invData) setInvoices(invData);
-
-        // Fetch Client Count
-        const { count: clientCount } = await supabase
-          .from('clients')
-          .select('*', { count: 'exact', head: true });
-
-        // Fetch P2P Count Today
-        const today = new Date().toISOString().split('T')[0];
-        const { count: p2pCount } = await supabase
-          .from('crypto_operations')
-          .select('*', { count: 'exact', head: true })
-          .eq('date', today);
-
-        setCounts({ clients: clientCount || 0, p2p: p2pCount || 0 });
-
-        // Calculate Totals
-        const { data: allInv } = await (supabase as any).from('invoices').select('total_usd, total_bs');
-        const sumUsd = (allInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_usd || 0), 0) || 0;
-        const sumBs = (allInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_bs || 0), 0) || 0;
-        setTotals({ usd: sumUsd, bs: sumBs });
-
-        // Fetch Rate
-        const rate = await bcv.getLatestRate();
-        setCurrentRate(rate);
-
-      } catch (err) {
-        setDbStatus('Error');
-      }
-    };
     init();
-  }, []);
+  }, [filterMonth, filterYear]);
 
-  const currentMonth = new Intl.DateTimeFormat('es-VE', { month: 'short' }).format(new Date()).toUpperCase();
+  const init = async () => {
+    try {
+      setDbStatus('Connected');
+
+      // Fetch User Info
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+
+      // Fetch Recent Invoices
+      const { data: invData } = await (supabase as any)
+        .from('invoices')
+        .select('*, clients(name)')
+        .order('issue_date', { ascending: false })
+        .limit(5);
+      if (invData) setInvoices(invData);
+
+      // Fetch Client Count
+      const { count: clientCount } = await supabase
+        .from('clients')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch P2P Count Today
+      const today = new Date().toISOString().split('T')[0];
+      const { count: p2pCount } = await supabase
+        .from('crypto_operations')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', today);
+
+      setCounts({ clients: clientCount || 0, p2p: p2pCount || 0 });
+
+      // Calculate Totals based on Month/Year filter
+      const startDate = `${filterYear}-${filterMonth.toString().padStart(2, '0')}-01`;
+      const lastDay = new Date(filterYear, filterMonth, 0).getDate();
+      const endDate = `${filterYear}-${filterMonth.toString().padStart(2, '0')}-${lastDay}`;
+
+      const { data: filteredInv } = await (supabase as any)
+        .from('invoices')
+        .select('total_usd, total_bs')
+        .gte('issue_date', startDate)
+        .lte('issue_date', endDate);
+
+      const sumUsd = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_usd || 0), 0) || 0;
+      const sumBs = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_bs || 0), 0) || 0;
+      setTotals({ usd: sumUsd, bs: sumBs });
+
+      // Fetch Rate
+      const rate = await bcv.getLatestRate();
+      setCurrentRate(rate);
+
+    } catch (err) {
+      setDbStatus('Error');
+    }
+  };
+
+  const selectedMonthName = new Date(filterYear, filterMonth - 1).toLocaleString('es-VE', { month: 'short' }).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background font-inter pb-32 dark:bg-[#0b1c30]">
+    <div className="min-h-screen bg-background font-inter pb-32 dark:bg-[#0b1c30] transition-colors">
       {/* Top Bar */}
       <header className="bg-white px-6 h-20 flex items-center justify-between shadow-level-1 sticky top-0 z-50 dark:bg-[#0d2b5b] dark:border-b dark:border-white/10">
         <div className="flex flex-col">
@@ -97,14 +112,38 @@ const Dashboard: React.FC = () => {
         </button>
 
         <section className="space-y-4">
-          <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] ml-1 dark:text-secondary">{t('monthly_rev')}</h2>
+          <div className="flex justify-between items-center px-1">
+            <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] dark:text-secondary">{t('monthly_rev')}</h2>
+            <button
+                onClick={() => setShowMonthPicker(!showMonthPicker)}
+                className="text-[10px] font-bold text-secondary uppercase tracking-widest flex items-center gap-1.5 bg-surface-container-low dark:bg-white/10 px-3 py-1.5 rounded-lg border dark:border-white/10 active:scale-95 transition-all"
+            >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                {selectedMonthName} {filterYear}
+            </button>
+          </div>
+
+          {showMonthPicker && (
+              <div className="bg-white dark:bg-white/5 p-4 rounded-2xl border border-outline-variant dark:border-white/10 shadow-xl grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                  {Array.from({length: 12}, (_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setFilterMonth(i + 1); setShowMonthPicker(false); }}
+                        className={`py-2 text-[9px] font-bold rounded-lg transition-all ${filterMonth === i + 1 ? 'bg-primary text-white' : 'bg-surface-container-low dark:bg-white/10 dark:text-white/60'}`}
+                      >
+                          {new Date(0, i).toLocaleString('es', {month: 'short'}).toUpperCase()}
+                      </button>
+                  ))}
+              </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 dark:bg-white/5 dark:border-white/10">
               <div className="flex items-center gap-2 mb-3">
                 <div className="bg-surface-container-low text-primary text-[10px] font-bold px-2 py-0.5 rounded border border-primary/10 dark:bg-white/10 dark:text-white uppercase">$ USD</div>
               </div>
               <div className="text-xl font-bold text-primary tracking-tight dark:text-white">${totals.usd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
-              <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('total_earned')} ({currentMonth})</p>
+              <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('total_earned')} ({selectedMonthName})</p>
             </div>
 
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 dark:bg-white/5 dark:border-white/10">

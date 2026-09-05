@@ -84,7 +84,7 @@ const Invoice: React.FC = () => {
     doc.text(`CÓDIGO ACTIVIDAD ECONÓMICA: ${company?.economic_activity_code || "9499"}`, companyTextX, headerY + 12.5);
     const companyAddr = doc.splitTextToSize(company?.address || "Dirección Fiscal", 70);
     doc.text(companyAddr, companyTextX, headerY + 16, { align: 'justify', maxWidth: 70 });
-    const contactY = headerY + 16 + (companyAddr.length * 4.5);
+    const contactY = headerY + 16 + (companyAddr.length * 4);
     doc.text(`Teléfono: ${company?.phone || ""} | Correo: ${company?.email || ""}`, companyTextX, contactY);
 
     const metaX = pageWidth - 65;
@@ -126,7 +126,7 @@ const Invoice: React.FC = () => {
     const clAddr = doc.splitTextToSize((invoice.clients?.address || "N/A").toString(), 65);
     doc.text(clAddr, margin + 35, clAddrY, { align: 'justify', maxWidth: 65 });
 
-    const col2X = pageWidth - margin - 55; // FIXED RIGHT ANCHOR
+    const col2X = pageWidth - margin - 55;
     doc.text("RIF/CI:", col2X, clientY);
     doc.setFont("helvetica", "bold");
     doc.text((invoice.clients?.rif || "N/A").toString(), pageWidth - margin, clientY, { align: 'right' });
@@ -210,7 +210,7 @@ const Invoice: React.FC = () => {
     const footerStartY = pageHeight - 42;
     doc.setTextColor(0);
     doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
+    doc.setFont("helvetica", "normal");
     doc.text(`Tipo de cambio BCV a la fecha de emisión: ${invoice.bcv_rate.toFixed(4)} Bs/USD`, margin, footerStartY);
     doc.text(`OBSERVACIONES: ${(invoice.observations || "Ninguna.").toString()}`, margin, footerStartY + 5);
     doc.setFontSize(6.5);
@@ -253,25 +253,24 @@ const Invoice: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-primary font-bold">Cargando...</div>;
-  if (!invoice) return <div className="min-h-screen flex items-center justify-center bg-background">Factura no encontrada</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background dark:bg-[#0b1c30] text-primary dark:text-white font-bold transition-colors">Cargando...</div>;
+  if (!invoice) return <div className="min-h-screen flex items-center justify-center bg-background dark:bg-[#0b1c30] text-primary dark:text-white transition-colors">Factura no encontrada</div>;
 
   return (
-    <div className="min-h-screen bg-background pb-32 font-inter text-primary">
-      {/* header con botón atrás + acciones (share/download) */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-outline-variant/30 px-6 h-20 flex items-center justify-between shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-3 bg-surface-container-low text-primary rounded-xl border border-outline-variant/30 active:scale-90 transition-all shadow-sm">
+    <div className="min-h-screen bg-background dark:bg-[#0b1c30] pb-32 font-inter text-primary dark:text-white transition-colors">
+      <header className="fixed top-0 left-0 w-full z-50 bg-white/90 dark:bg-[#0d2b5b]/90 backdrop-blur-md border-b border-outline-variant/30 dark:border-white/10 px-6 h-20 flex items-center justify-between shadow-sm">
+        <button onClick={() => navigate(-1)} className="p-3 bg-surface-container-low dark:bg-white/10 text-primary dark:text-white rounded-xl border border-outline-variant/30 dark:border-white/10 active:scale-90 transition-all shadow-sm">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <div className="flex gap-3">
-          <button onClick={handleShare} className="p-3 bg-surface-container-low text-primary rounded-xl border border-outline-variant/30 active:scale-90 transition-all shadow-sm">
+          <button onClick={handleShare} className="p-3 bg-surface-container-low dark:bg-white/10 text-primary dark:text-white rounded-xl border border-outline-variant/30 dark:border-white/10 active:scale-90 transition-all shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
-          <button onClick={handleDownload} className="p-3 bg-primary text-white rounded-xl shadow-lg active:scale-90 transition-all">
+          <button onClick={handleDownload} className="p-3 bg-primary dark:bg-secondary text-white rounded-xl shadow-lg active:scale-90 transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
@@ -280,57 +279,53 @@ const Invoice: React.FC = () => {
       </header>
 
       <div className="max-w-md mx-auto p-6 pt-24 space-y-4">
-        <div className="bg-white rounded-lg border border-outline-variant shadow-level-2 p-6 space-y-6">
-          {/* Encabezado: logo + nombre empresa + RIF */}
+        <div className="bg-white dark:bg-white/5 rounded-lg border border-outline-variant dark:border-white/10 shadow-level-2 p-6 space-y-6">
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <img src={company?.logo_url || "/logo-1024.png"} className="h-12 w-12 object-contain mb-2" />
-              <h1 className="text-sm font-bold text-primary uppercase">{company?.name}</h1>
-              <p className="text-[10px] text-on-surface-variant font-medium uppercase tracking-widest">RIF: {company?.rif}</p>
+              <h1 className="text-sm font-bold text-primary dark:text-white uppercase">{company?.name}</h1>
+              <p className="text-[10px] text-on-surface-variant dark:text-white/40 font-medium uppercase tracking-widest">RIF: {company?.rif}</p>
             </div>
             <div className="text-right">
-              <h2 className="text-lg font-black text-primary tracking-tighter">FACTURA</h2>
-              <p className="text-[10px] font-bold text-red-600">N.º {invoice.invoice_number}</p>
-              <p className="text-[10px] text-on-surface-variant font-medium">{new Date(invoice.issue_date).toLocaleDateString('es-VE')}</p>
+              <h2 className="text-lg font-black text-primary dark:text-secondary tracking-tighter">FACTURA</h2>
+              <p className="text-[10px] font-bold text-red-600 dark:text-red-400">N.º {invoice.invoice_number}</p>
+              <p className="text-[10px] text-on-surface-variant dark:text-white/40 font-medium">{new Date(invoice.issue_date).toLocaleDateString('es-VE')}</p>
             </div>
           </div>
 
-          {/* Bloque cliente */}
-          <div className="grid grid-cols-2 gap-4 text-[10px] pt-4 border-t border-outline-variant/30">
+          <div className="grid grid-cols-2 gap-4 text-[10px] pt-4 border-t border-outline-variant/30 dark:border-white/10">
             <div className="space-y-2">
-              <span className="font-bold text-on-surface-variant uppercase tracking-widest block">Cliente</span>
-              <p className="font-bold text-primary uppercase">{invoice.clients?.name}</p>
-              <p className="text-on-surface-variant leading-tight">{invoice.clients?.address}</p>
+              <span className="font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest block">Cliente</span>
+              <p className="font-bold text-primary dark:text-white uppercase">{invoice.clients?.name}</p>
+              <p className="text-on-surface-variant dark:text-white/40 leading-tight">{invoice.clients?.address}</p>
             </div>
-            <div className="space-y-1 text-right">
+            <div className="space-y-1 text-right dark:text-white/60">
               <p><span className="font-bold">RIF:</span> {invoice.clients?.rif}</p>
               <p><span className="font-bold">TEL:</span> {invoice.clients?.phone}</p>
               <p><span className="font-bold uppercase tracking-tighter">Condición:</span> {invoice.payment_condition}</p>
             </div>
           </div>
 
-          {/* Tabla de 1 fila */}
           <div className="pt-4">
-            <div className="bg-surface-container-low p-3 rounded-t-md flex justify-between text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+            <div className="bg-surface-container-low dark:bg-white/10 p-3 rounded-t-md flex justify-between text-[10px] font-bold uppercase tracking-widest text-on-surface-variant dark:text-white/60">
               <span>Descripción</span>
               <span>Total</span>
             </div>
-            <div className="p-4 border-x border-b border-outline-variant/30 rounded-b-md space-y-2">
-              <p className="text-[10px] leading-relaxed text-primary justify-around">{invoice.concept}</p>
+            <div className="p-4 border-x border-b border-outline-variant/30 dark:border-white/10 rounded-b-md space-y-2">
+              <p className="text-[10px] leading-relaxed text-primary dark:text-white">{invoice.concept}</p>
               <div className="flex justify-between items-center pt-2">
-                <span className="text-[9px] font-bold text-on-surface-variant">1.00 x ${invoice.subtotal_usd.toFixed(2)}</span>
-                <span className="text-sm font-bold text-primary">${invoice.subtotal_usd.toFixed(2)}</span>
+                <span className="text-[9px] font-bold text-on-surface-variant dark:text-white/40">1.00 x ${invoice.subtotal_usd.toFixed(2)}</span>
+                <span className="text-sm font-bold text-primary dark:text-white">${invoice.subtotal_usd.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
-          {/* Resumen Financiero */}
           <div className="space-y-2 pt-4">
-            <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant">
+            <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant dark:text-white/60">
               <span>Base Imponible 16%</span>
               <span>${invoice.subtotal_usd.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant">
+            <div className="flex justify-between text-[10px] font-bold uppercase text-on-surface-variant dark:text-white/60">
               <span>I.V.A. 16%</span>
               <span>${invoice.iva_usd.toFixed(2)}</span>
             </div>
@@ -340,7 +335,7 @@ const Invoice: React.FC = () => {
                 <span>${invoice.igtf_usd.toFixed(2)}</span>
               </div>
             )}
-            <div className="bg-primary p-4 rounded-xl flex justify-between items-center text-white mt-4 shadow-lg">
+            <div className="bg-primary dark:bg-[#0d2b5b] p-4 rounded-xl flex justify-between items-center text-white mt-4 shadow-lg">
               <span className="text-sm font-bold uppercase tracking-widest">TOTAL</span>
               <div className="text-right">
                 <div className="text-xl font-black">${invoice.total_usd.toFixed(2)}</div>
@@ -349,8 +344,7 @@ const Invoice: React.FC = () => {
             </div>
           </div>
 
-          {/* Nota */}
-          <p className="text-[9px] text-on-surface-variant italic font-medium pt-4 text-center border-t border-outline-variant/20">
+          <p className="text-[9px] text-on-surface-variant dark:text-white/40 italic font-medium pt-4 text-center border-t border-outline-variant/20 dark:border-white/10">
             Tipo de cambio BCV a la fecha de emisión: {invoice.bcv_rate.toFixed(4)} Bs/USD
           </p>
         </div>

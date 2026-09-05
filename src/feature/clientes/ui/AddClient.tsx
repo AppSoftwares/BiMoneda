@@ -94,7 +94,7 @@ const AddClient: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="text-lg font-bold text-primary dark:text-white tracking-tight">{t('register_client_title')}</h1>
+        <h1 className="text-lg font-bold text-primary dark:text-white tracking-tight uppercase">{t('register_client_title')}</h1>
       </header>
 
       <main className="p-6 max-w-md mx-auto">
@@ -254,7 +254,7 @@ const AddClient: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary dark:bg-secondary text-white font-bold py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
+            className="w-full bg-primary dark:bg-secondary text-white font-black py-4 rounded-md shadow-level-2 active:scale-[0.98] transition-all uppercase tracking-wider text-sm disabled:opacity-50"
           >
             {loading ? 'Procesando...' : t('btn_register')}
           </button>

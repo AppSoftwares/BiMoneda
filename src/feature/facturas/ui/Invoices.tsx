@@ -74,7 +74,7 @@ const Invoices: React.FC = () => {
         </button>
       </header>
 
-      <main className="p-6 space-y-8 max-w-md mx-auto">
+      <main className="p-6 space-y-8 max-md mx-auto">
         <div className="grid grid-cols-2 gap-4">
             <div className="bg-white dark:bg-white/5 p-4 rounded-lg border border-outline-variant dark:border-white/10 shadow-level-1">
                 <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest block mb-1">{t('total_paid')}</span>

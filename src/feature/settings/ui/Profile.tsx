@@ -6,7 +6,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import jsPDF from 'jspdf';
 import BottomNav from '../../../core/nav/BottomNav';
 
-type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company';
+type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company' | 'binance';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -21,6 +21,9 @@ const Profile: React.FC = () => {
   // Binance API State
   const [binanceKey, setBinanceKey] = useState('');
   const [binanceSecret, setBinanceSecret] = useState('');
+
+  // Password Change State
+  const [passwords, setPasswordData] = useState({ current: '', new: '', confirm: '' });
 
   // File Input Refs
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -44,6 +47,7 @@ const Profile: React.FC = () => {
         setUser(user);
         setAvatarUrl(user.user_metadata?.avatar_url || null);
         setBinanceKey(user.user_metadata?.binance_key || '');
+        setBinanceSecret(user.user_metadata?.binance_secret || '');
       }
 
       const { data: compData } = await (supabase as any).from('company_profile').select('*').single();
@@ -107,6 +111,21 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleUpdatePassword = async () => {
+    if (passwords.new !== passwords.confirm) return alert('Las contraseñas no coinciden');
+    setLoading(true);
+    try {
+        const { error } = await supabase.auth.updateUser({ password: passwords.new });
+        if (error) throw error;
+        alert('Contraseña actualizada correctamente');
+        setPasswordData({ current: '', new: '', confirm: '' });
+    } catch (err: any) {
+        alert('Error: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+  };
+
   const generateDeclarationLetter = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -119,19 +138,19 @@ const Profile: React.FC = () => {
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
 
-    const text = `Yo, ${profile?.name || '________________'}, titular de la Cédula de Identidad / RIF N.º ${profile?.rif || '________________'}, en mi carácter de usuario de la plataforma BiMoneda, declaro bajo fe de juramento que los fondos utilizados para mis operaciones con activos digitales (Criptoactivos) provienen de actividades lícitas y de mi giro comercial declarado.\n\nEste documento se emite como un BORRADOR TÉCNICO PARA REVISIÓN CONTABLE, basado en el historial de operaciones registrado en la aplicación BiMoneda hasta la fecha ${new Date().toLocaleDateString('es-VE')}.\n\nCertifico que las transacciones detalladas en mis libros contables digitales corresponden a la realidad de mis operaciones P2P y liquidaciones de activos.`;
+    const bodyText = `Yo, ${profile?.name || '________________'}, titular de la Cédula de Identidad / RIF N.º ${profile?.rif || '________________'}, en mi carácter de usuario de la plataforma BiMoneda, declaro bajo fe de juramento que los fondos utilizados para mis operaciones con activos digitales (Criptoactivos) provienen de actividades lícitas y de mi giro comercial declarado.\n\nEste documento se emite como un BORRADOR TÉCNICO PARA REVISIÓN CONTABLE, basado en el historial de operaciones registrado en la aplicación BiMoneda hasta la fecha ${new Date().toLocaleDateString('es-VE')}.\n\nCertifico que las transacciones detalladas en mis libros contables digitales corresponden a la realidad de mis operaciones P2P y liquidaciones de activos. Los mismos son producto de mi actividad económica y no guardan relación con fondos de procedencia ilícita ni legitimación de capitales.`;
 
-    const splitText = doc.splitTextToSize(text, pageWidth - 40);
+    const splitText = doc.splitTextToSize(bodyText, pageWidth - 40);
     doc.text(splitText, 20, 50);
 
-    doc.text("__________________________", pageWidth/2, 120, { align: 'center' });
-    doc.text("Firma del Declarante", pageWidth/2, 125, { align: 'center' });
+    doc.text("__________________________", pageWidth/2, 140, { align: 'center' });
+    doc.text("Firma del Declarante", pageWidth/2, 145, { align: 'center' });
 
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text("NOTA: Este documento debe ser validado, firmado y sellado por un Contador Público Colegiado.", pageWidth/2, 140, { align: 'center' });
+    doc.text("NOTA: Este documento debe ser validado, firmado y sellado por un Contador Público Colegiado para su presentación legal.", pageWidth/2, 160, { align: 'center' });
 
-    doc.save("Declaracion_Fondos_Licitos_Borrador.pdf");
+    doc.save("Declaracion_Fondos_Licitos_BiMoneda.pdf");
   };
 
   const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>, bucket: string, field: string) => {
@@ -175,7 +194,7 @@ const Profile: React.FC = () => {
       className="w-full flex items-center justify-between p-5 active:bg-surface-container-low dark:active:bg-white/10 transition-all border-b border-outline-variant/20 dark:border-white/10 last:border-0"
     >
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg bg-surface-container-low dark:bg-white/10 flex items-center justify-center text-secondary dark:text-secondary">
+        <div className="w-10 h-10 rounded-lg bg-surface-container-low dark:bg-white/10 flex items-center justify-center text-secondary">
           {icon}
         </div>
         <span className={`text-sm font-bold ${color} tracking-tight`}>{label}</span>
@@ -205,9 +224,9 @@ const Profile: React.FC = () => {
 
       {activeSection === 'main' && (
         <>
-          <div className="bg-surface-container-low dark:bg-[#0d2b5b] pt-12 pb-10 flex flex-col items-center">
+          <div className="bg-surface-container-low dark:bg-[#0d2b5b] pt-12 pb-10 flex flex-col items-center shadow-sm">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full border-4 border-primary dark:border-white/20 p-1 shadow-2xl bg-white dark:bg-primary overflow-hidden">
+              <div className="w-32 h-32 rounded-full border-4 border-primary dark:border-secondary p-1 shadow-2xl bg-white dark:bg-primary overflow-hidden">
                 <img src={avatarUrl || "/logo-1024.png"} className="w-full h-full object-cover rounded-full" />
               </div>
               <button
@@ -230,15 +249,17 @@ const Profile: React.FC = () => {
 
           <main className="p-6 space-y-6 max-w-md mx-auto -mt-6">
             <div className="bg-white dark:bg-white/5 rounded-xl shadow-level-1 border border-outline-variant dark:border-white/10 overflow-hidden">
-              <MenuItem label={t('company_profile')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>} onClick={() => setActiveSection('company')} />
-              <MenuItem label={t('account_settings')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} onClick={() => setActiveSection('account')} />
-              <MenuItem label={t('privacy_security')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} onClick={() => setActiveSection('security')} />
-              <MenuItem label={t('appearance_theme')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>} onClick={() => setActiveSection('appearance')} />
+              <MenuItem label={t('company_profile')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>} onClick={() => setActiveSection('company')} />
+              <MenuItem label="Integración Binance" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>} onClick={() => setActiveSection('binance')} />
+              <MenuItem label={t('account_settings')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>} onClick={() => setActiveSection('account')} />
+              <MenuItem label={t('privacy_security')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>} onClick={() => setActiveSection('security')} />
+              <MenuItem label={t('appearance_theme')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>} onClick={() => setActiveSection('appearance')} />
             </div>
 
             <div className="bg-white dark:bg-white/5 rounded-xl shadow-level-1 border border-outline-variant dark:border-white/10 overflow-hidden">
-              <MenuItem label={t('help_center')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} onClick={() => setActiveSection('help')} />
-              <MenuItem label={t('logout')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-6 0v-1m6-11V7a3 3 0 01-6 0v1" /></svg>} onClick={() => supabase.auth.signOut()} color="text-red-500" />
+              <MenuItem label={t('help_center')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} onClick={() => setActiveSection('help')} />
+              <MenuItem label={t('terms_cond')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => setActiveSection('legal')} />
+              <MenuItem label={t('logout')} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-6 0v-1m6-11V7a3 3 0 01-6 0v1" /></svg>} onClick={() => supabase.auth.signOut()} color="text-red-500" />
             </div>
           </main>
         </>
@@ -280,12 +301,12 @@ const Profile: React.FC = () => {
         </>
       )}
 
-      {activeSection === 'security' && (
+      {activeSection === 'binance' && (
         <>
-          <SubHeader title={t('privacy_security')} />
+          <SubHeader title="Integración Binance" />
           <main className="p-6 space-y-8 max-w-md mx-auto">
              <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-outline-variant dark:border-white/10 shadow-level-1 space-y-6">
-                <h3 className="text-xs font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Integración de API</h3>
+                <h3 className="text-xs font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Configuración API</h3>
                 <div className="space-y-4">
                     <p className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase leading-tight">Configura tu API de Binance (Solo Lectura) para sincronizar libros contables automáticamente.</p>
                     <div className="space-y-2">
@@ -296,20 +317,90 @@ const Profile: React.FC = () => {
                         <label className="text-[10px] font-bold text-secondary uppercase tracking-widest ml-1">Binance API Secret</label>
                         <input type="password" value={binanceSecret} onChange={e => setBinanceSecret(e.target.value)} className="w-full bg-surface-container-low dark:bg-white/10 p-4 rounded-xl text-xs font-bold text-primary dark:text-white outline-none" placeholder="••••••••••••" />
                     </div>
-                    <button onClick={handleSaveBinanceAPI} className="w-full py-3.5 bg-primary dark:bg-white/10 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all">Sincronizar API</button>
+                    <button onClick={handleSaveBinanceAPI} className="w-full py-3.5 bg-primary dark:bg-secondary text-white font-bold rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all">Guardar Credenciales</button>
                 </div>
              </div>
 
              <div className="bg-white dark:bg-white/5 rounded-2xl p-6 border border-outline-variant dark:border-white/10 shadow-level-1 space-y-6">
-                <h3 className="text-xs font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Documentos Legales</h3>
-                <button onClick={generateDeclarationLetter} className="w-full flex items-center justify-between p-4 bg-surface-container-low dark:bg-white/5 rounded-xl active:scale-95 transition-all">
-                    <div className="flex items-center gap-3">
-                        <svg className="h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>
-                        <span className="text-[10px] font-black text-primary dark:text-white uppercase">Carta de Declaración (Borrador)</span>
-                    </div>
-                    <svg className="h-4 w-4 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                </button>
+                <h3 className="text-xs font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Generar Documentos</h3>
+                <div className="space-y-3">
+                    <p className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase">Certifica el origen lícito de tus operaciones digitales.</p>
+                    <button onClick={generateDeclarationLetter} className="w-full flex items-center justify-between p-4 bg-surface-container-low dark:bg-white/5 rounded-xl border dark:border-white/10 active:scale-95 transition-all">
+                        <div className="flex items-center gap-3">
+                            <svg className="h-5 w-5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>
+                            <span className="text-[10px] font-black text-primary dark:text-white uppercase">Carta de Declaración (Borrador)</span>
+                        </div>
+                        <svg className="h-4 w-4 text-outline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                </div>
              </div>
+          </main>
+        </>
+      )}
+
+      {activeSection === 'account' && (
+        <>
+          <SubHeader title={t('account_settings')} />
+          <main className="p-6 space-y-8 max-w-md mx-auto">
+             <div className="bg-white dark:bg-white/5 rounded-lg border border-outline-variant dark:border-white/10 shadow-level-1 overflow-hidden">
+                <div className="p-5 space-y-6">
+                   <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-primary dark:text-white tracking-tight">Actualizar Correo</h3>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Dirección de Correo</label>
+                        <input value={user?.email || ''} readOnly className="w-full bg-surface-container-low dark:bg-white/10 p-4 rounded-md text-sm font-medium text-primary dark:text-white border border-transparent" />
+                      </div>
+                      <button className="w-full py-3.5 bg-secondary text-white font-bold rounded-md text-xs uppercase tracking-widest mt-2 active:scale-95 transition-all">Guardar Cambios</button>
+                   </div>
+
+                   <div className="h-px bg-outline-variant/30 dark:bg-white/10"></div>
+
+                   <div className="space-y-4">
+                      <h3 className="text-lg font-bold text-primary dark:text-white tracking-tight">Cambiar Contraseña</h3>
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Nueva Contraseña</label>
+                          <input type="password" value={passwords.new} onChange={e => setPasswordData({...passwords, new: e.target.value})} className="w-full bg-surface-container-low dark:bg-white/10 p-4 rounded-md text-sm text-primary dark:text-white" placeholder="Mín. 8 caracteres" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest ml-1">Confirmar Nueva Contraseña</label>
+                          <input type="password" value={passwords.confirm} onChange={e => setPasswordData({...passwords, confirm: e.target.value})} className="w-full bg-surface-container-low dark:bg-white/10 p-4 rounded-md text-sm text-primary dark:text-white" placeholder="Repita la nueva contraseña" />
+                        </div>
+                      </div>
+                      <button onClick={handleUpdatePassword} className="w-full py-3.5 bg-primary dark:bg-secondary text-white font-bold rounded-md text-xs uppercase tracking-widest mt-2">Actualizar Contraseña</button>
+                   </div>
+                </div>
+             </div>
+          </main>
+        </>
+      )}
+
+      {activeSection === 'security' && (
+        <>
+          <SubHeader title={t('privacy_security')} />
+          <main className="p-6 space-y-8 max-w-md mx-auto">
+             <div className="bg-white dark:bg-white/5 rounded-xl shadow-level-1 border border-outline-variant dark:border-white/10 overflow-hidden">
+                <MenuItem label="Biometría" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 20a10.003 10.003 0 006.235-2.397l.054.09a10.003 10.003 0 01-2.753-9.57M12 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>} onClick={() => alert('Próximamente')} />
+                <MenuItem label="Verificación en 2 pasos" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>} onClick={() => alert('Próximamente')} />
+             </div>
+             <p className="px-4 text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase leading-relaxed">Controla la seguridad de tu cuenta y la privacidad de tus datos financieros.</p>
+          </main>
+        </>
+      )}
+
+      {activeSection === 'legal' && (
+        <>
+          <SubHeader title={t('terms_cond')} />
+          <main className="p-6 space-y-6 max-w-md mx-auto">
+             <div className="bg-white dark:bg-white/5 rounded-2xl p-8 border border-outline-variant dark:border-white/10 shadow-sm space-y-6">
+                <h3 className="text-sm font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Términos de Uso</h3>
+                <div className="text-[11px] text-on-surface-variant dark:text-white/60 leading-relaxed space-y-4">
+                    <p>Al utilizar BiMoneda, usted acepta que es el único responsable de la exactitud de los datos registrados y del cumplimiento de las obligaciones tributarias en su jurisdicción.</p>
+                    <p>La aplicación actúa como una herramienta técnica de apoyo administrativo y no constituye asesoría contable o legal formal.</p>
+                    <p>Nos reservamos el derecho de actualizar los términos para cumplir con las normativas vigentes en materia de criptoactivos.</p>
+                </div>
+             </div>
+             <MenuItem label="Política de Privacidad" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => alert('Política de Privacidad')} />
           </main>
         </>
       )}
