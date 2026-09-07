@@ -148,86 +148,209 @@ const Profile: React.FC = () => {
   };
 
   const generateDeclarationLetter = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'letter'
+    });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const today = new Date();
     const dia = today.getDate();
     const mes = today.toLocaleDateString('es-VE', { month: 'long' });
     const anio = today.getFullYear();
-    const ciudad = editCompany?.city || profile?.address?.split(',')[0] || '________________';
+    const ciudad = editCompany?.city || profile?.city || '________________';
+    const estado = editCompany?.state || profile?.state || '________________';
+    const refDoc = `DJ-${anio}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${dia}-BM`;
+
+    // Colors
+    const colorRed: [number, number, number] = [122, 31, 31];
+    const colorGold: [number, number, number] = [217, 201, 163];
+    const colorText: [number, number, number] = [26, 26, 26];
+
+    // 1. Background & Borders
+    doc.setFillColor(253, 252, 248);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+    // Outer double border
+    doc.setDrawColor(colorRed[0], colorRed[1], colorRed[2]);
+    doc.setLineWidth(0.8);
+    doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+    doc.setLineWidth(0.2);
+    doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+
+    // 2. Watermark
+    doc.saveGraphicsState();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(60);
+    doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
+    (doc as any).setGState(new (doc as any).GState({ opacity: 0.06 }));
+    doc.text("DECLARACIÓN JURADA", pageWidth / 2, pageHeight / 2, {
+      align: 'center',
+      angle: 332 // -28 degrees approx (360 - 28)
+    });
+    doc.restoreGraphicsState();
+
+    // 3. Header
+    let y = 25;
+    doc.setFont("times", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    doc.text("Carta de Declaración de Origen y Movimiento Lícito de Fondos", pageWidth / 2, y, { align: 'center' });
+    y += 7;
+    doc.setFont("times", "italic");
+    doc.setFontSize(10);
+    doc.setTextColor(68, 68, 68);
+    doc.text("Vinculados a la Actividad de Arbitraje y Operaciones P2P con Activos Digitales", pageWidth / 2, y, { align: 'center' });
+    y += 5;
+    doc.setDrawColor(colorRed[0], colorRed[1], colorRed[2]);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 8;
+
+    // Doc Meta
+    doc.setFont("times", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
+    doc.text(`Ref. N°: ${refDoc}`, 20, y);
+    doc.text(`${ciudad}, ${estado} — ${dia} de ${mes} de ${anio}`, pageWidth - 20, y, { align: 'right' });
+    y += 10;
 
     const margin = 20;
     const maxWidth = pageWidth - (margin * 2);
-    let y = 15;
+    const lineHeight = 5;
 
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    const titleLines = doc.splitTextToSize(
-      "CARTA DE DECLARACIÓN DE ORIGEN Y MOVIMIENTOS LÍCITO DE FONDO VINCULADOS A LA ACTIVIDAD DE ACTIVOS DIGITALES",
-      maxWidth
-    );
-    doc.text(titleLines, pageWidth / 2, y, { align: 'center' });
-    y += titleLines.length * 5 + 5;
+    // Helper for sections
+    const drawSection = (title: string) => {
+      doc.setFont("times", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
+      doc.text(title, margin, y);
+      y += 2;
+      doc.setDrawColor(colorGold[0], colorGold[1], colorGold[2]);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+    };
 
-    doc.setFontSize(8.5);
-    doc.setFont("helvetica", "normal");
-    const lineHeight = 4;
+    // I. Fundamento Legal
+    drawSection("I. Fundamento Legal");
+    doc.setFont("times", "normal");
+    doc.setFontSize(9.7);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    const introText = "La presente declaración se emite de conformidad con el Decreto Constituyente sobre el Sistema Integral de Criptoactivos, publicado en Gaceta Oficial N.° 41.575 del 30/01/2019, y con el artículo 27 de la Resolución N.° 008 del 31/01/2019 (Gaceta Oficial N.° 41.581, del 07/02/2019), \"Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo\".";
+    const splitIntro = doc.splitTextToSize(introText, maxWidth);
+    doc.text(splitIntro, margin, y, { align: 'justify' });
+    y += splitIntro.length * 4.5 + 4;
 
-    const introText = "De acuerdo a lo establecido por el decreto constituyente sobre el Sistema Integral de Criptoactivos, publicado en Gaceta oficial N° 41.575, de fecha 30 de enero 2019, el cual establece las bases para la creación, circulación, uso e intercambio de criptoactivos por parte de la persona natural y jurídicas, públicas y privadas, dentro del territorio nacional. Asimismo, según lo establecido en el artículo 27 de la Resolución N° 008 de fecha 31 de enero de 2019, publicada en Gaceta Oficial de la República Bolivariana de Venezuela N° 41.581, de fecha 7 de febrero de 2019, el cual establece las \"Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo\"";
-    let split = doc.splitTextToSize(introText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+    // II. Identificación
+    drawSection("II. Identificación del Declarante");
+    doc.setFontSize(9.3);
+    const idData = [
+      { label: "Nombre:", value: editCompany?.full_name || editCompany?.name || '________________' },
+      { label: "Cédula/Pasaporte:", value: editCompany?.id_number || editCompany?.rif || '________________' },
+      { label: "Nacionalidad:", value: editCompany?.nationality || '________________' },
+      { label: "Estado civil:", value: editCompany?.marital_status || '________________' },
+      { label: "Teléfono:", value: editCompany?.phone || '________________' },
+      { label: "Correo:", value: editCompany?.email || user?.email || '________________' },
+      { label: "Ocupación:", value: editCompany?.occupation || '________________' },
+      { label: "Domicilio:", value: `${ciudad}, ${estado}` }
+    ];
 
-    const declText = `Yo, ${editCompany?.full_name || editCompany?.name || '________________'}, de nacionalidad ${editCompany?.nationality || '________________'}, mayor de edad, de estado civil ${editCompany?.marital_status || '________________'}, número telefónico ${editCompany?.phone || '________________'}, titular de la cédula de identidad y/o pasaporte número ${editCompany?.id_number || editCompany?.rif || '________________'}, correo electrónico ${editCompany?.email || user?.email || '________________'}, civilmente hábil, de profesión u ocupación ${editCompany?.occupation || '________________'} y domiciliado en la ciudad de ${editCompany?.city || '________________'}, estado ${editCompany?.state || '________________'}, declaro que los capitales, valores o títulos producto de actividad de arbitraje de activos digitales y operaciones P2P que presento, proceden de actividad lícita, lo cual puede ser corroborado por los organismos competentes y no tienen relación alguna con actividades, acciones o hechos ilícitos contemplados en las leyes venezolanas.`;
-    split = doc.splitTextToSize(declText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+    let idY = y;
+    for (let i = 0; i < idData.length; i += 2) {
+      doc.setFont("times", "bold");
+      doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
+      doc.text(idData[i].label, margin, idY);
+      doc.setFont("times", "normal");
+      doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+      doc.text(idData[i].value, margin + 25, idY);
 
-    const swornText = "Declaro bajo declaración jurada que los fondos utilizados provienen de ingresos personales lícitos y verificables, debido a que soy comerciante independiente y aunado a esto también invierto mi dinero en compra-venta de activos digitales, como la actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer) a través de plataformas de intercambio de criptoactivos autorizadas. La operación consiste en la compra-venta cíclica de activos digitales (USDT) utilizando cuentas propias en moneda extranjera y cuentas en moneda nacional, obteniendo un margen de ganancia por el diferencial cambiario y spread de mercado en cada ciclo operativo. Con fines lícitos, transparente y conforme a los principios de inclusión financiera, innovación tecnológica y soberanía económica establecidos en el Decreto Constituyente, es importante destacar que no se prestan servicios a terceros, como casa de cambio o servicios de custodia. Todas las operaciones son a título personal.";
-    split = doc.splitTextToSize(swornText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+      if (idData[i+1]) {
+        doc.setFont("times", "bold");
+        doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
+        doc.text(idData[i+1].label, margin + 90, idY);
+        doc.setFont("times", "normal");
+        doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+        doc.text(idData[i+1].value, margin + 125, idY);
+      }
+      idY += 5;
+    }
+    y = idY + 4;
 
-    const kycText = "Pueden realizar la verificación de la cuenta en los Exchange Binance, comprobando que el usuario posee niveles de verificación de identidad de alta seguridad (KYC completado).";
-    split = doc.splitTextToSize(kycText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+    // III. Declaración Jurada
+    drawSection("III. Declaración Jurada");
+    doc.setFontSize(9.7);
+    const swornText = "Declaro bajo mi responsabilidad que los capitales, valores o títulos producto de mi actividad de arbitraje de activos digitales y operaciones P2P proceden de actividad lícita, verificable ante los organismos competentes, sin relación alguna con hechos ilícitos contemplados en la legislación venezolana. Los fondos provienen de ingresos personales lícitos, derivados de mi actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer), ejecutada a través de plataformas de intercambio de criptoactivos autorizadas.";
+    const splitSworn = doc.splitTextToSize(swornText, maxWidth);
+    doc.text(splitSworn, margin, y, { align: 'justify' });
+    y += splitSworn.length * 4.5 + 4;
 
-    const traceText = "Pueden examinar la trazabilidad de los fondos demostrando que el dinero debitado de la cuenta de moneda extranjera fue destinado a la adquisición de USDT, los cuales posteriormente se liquidaron en el mercado P2P nacional para obtener moneda nacional, reinvirtiéndose los bolívares en la recompra de saldo en divisas para reiniciar el ciclo mercantil.";
-    split = doc.splitTextToSize(traceText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+    // IV. Operativa
+    drawSection("IV. Descripción de la Operativa");
+    const opText = "La operación consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
+    const splitOp = doc.splitTextToSize(opText, maxWidth);
+    doc.text(splitOp, margin, y, { align: 'justify' });
+    y += splitOp.length * 4.5 + 2;
 
-    const historyText = "Pueden realizar la revisión del historial de órdenes ejecutadas en los últimos meses, validando que el incremento patrimonial en las cuentas bancarias corresponde estrictamente con el volumen de operaciones y los márgenes de ganancia reportados por las plataformas de intercambio.";
-    split = doc.splitTextToSize(historyText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 4;
+    const listItems = [
+      "• Actividad realizada estrictamente a título personal.",
+      "• No se prestan servicios a terceros (casa de cambio, custodia).",
+      "• Operativa alineada con los principios de inclusión financiera, innovación tecnológica y soberanía económica del Decreto Constituyente."
+    ];
+    listItems.forEach(item => {
+      const splitItem = doc.splitTextToSize(item, maxWidth - 5);
+      doc.text(splitItem, margin + 5, y);
+      y += splitItem.length * 4.5;
+    });
+    y += 4;
 
-    const closingText = "Por lo que declaro que los fondos movilizados en mis cuentas tienen un origen lícito y trazable, derivado de una actividad comercial legítima de arbitraje de activos digitales por cuenta propia. Los movimientos bancarios guardan perfecta correlación con la compra, custodia temporal, venta y toma de ganancias de los criptoactivos declarados.";
-    split = doc.splitTextToSize(closingText, maxWidth);
-    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
-    y += split.length * lineHeight + 8;
+    // V. Trazabilidad
+    drawSection("V. Verificación y Trazabilidad");
+    const traceItems = [
+      "1. Cuenta verificada en Exchange Binance con nivel de verificación KYC completo (alta seguridad).",
+      "2. Trazabilidad: débito en moneda extranjera → adquisición de USDT → liquidación en mercado P2P nacional → obtención de moneda nacional → reinversión del ciclo.",
+      "3. Historial de órdenes disponible, con correlación entre incremento patrimonial y volumen/márgenes reportados por las plataformas."
+    ];
+    traceItems.forEach(item => {
+      const splitItem = doc.splitTextToSize(item, maxWidth - 5);
+      doc.text(splitItem, margin + 5, y);
+      y += splitItem.length * 4.5;
+    });
+    y += 6;
 
-    doc.text(`Se expide la presente certificación en la ciudad de ${ciudad}, a los ${dia} días del mes de ${mes} de ${anio}.`, margin, y);
-    y += 15;
+    const closingText = "En virtud de lo expuesto, declaro que los fondos movilizados en mis cuentas tienen origen lícito y trazable, derivado de actividad comercial legítima de arbitraje de activos digitales por cuenta propia, guardando perfecta correlación con el ciclo de compra, custodia temporal, venta y toma de ganancias de los criptoactivos declarados.";
+    const splitClosing = doc.splitTextToSize(closingText, maxWidth);
+    doc.text(splitClosing, margin, y, { align: 'justify' });
+    y += splitClosing.length * 4.5 + 15;
 
-    doc.setFont("helvetica", "bold");
-    doc.text(editCompany?.full_name || editCompany?.name || '________________', margin, y);
+    // Signature Block
+    doc.setDrawColor(colorText[0], colorText[1], colorText[2]);
+    doc.setLineWidth(0.4);
+    doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
     y += 5;
-    doc.setFont("helvetica", "normal");
-    doc.text(editCompany?.id_number || editCompany?.rif || '________________', margin, y);
+    doc.setFont("times", "bold");
+    doc.setFontSize(12);
+    doc.text(editCompany?.full_name || editCompany?.name || '________________', pageWidth / 2, y, { align: 'center' });
     y += 5;
-    doc.text(editCompany?.phone || '________________', margin, y);
-    y += 10;
+    doc.setFont("times", "normal");
+    doc.setFontSize(9.5);
+    doc.text(`${editCompany?.id_number || editCompany?.rif || '________________'}  ·  ${editCompany?.phone || '________________'}`, pageWidth / 2, y, { align: 'center' });
 
-    doc.setFontSize(7);
-    doc.setTextColor(150);
-    const footerText = "Este documento es generado como apoyo técnico. No constituye asesoría legal, contable ni tributaria. Se recomienda validar con un contador público y/o abogado antes de presentarlo ante terceros.";
-    const footerLines = doc.splitTextToSize(footerText, maxWidth);
-    doc.text(footerLines, margin, y, { align: 'justify', maxWidth: maxWidth });
+    // Footer
+    y = pageHeight - 25;
+    doc.setDrawColor(184, 155, 106);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 4;
+    doc.setFontSize(7.3);
+    doc.setTextColor(102, 102, 102);
+    doc.setFont("times", "italic");
+    const footerText = "Este documento es generado por BiMoneda como herramienta de apoyo contable/administrativo, con base en los datos registrados por el propio usuario. BiMoneda no procesa pagos, no custodia fondos ni valida la exactitud de la información aquí contenida. El usuario que presenta este documento ante terceros es el único responsable de su veracidad. No constituye asesoría legal, contable ni tributaria; se recomienda validarlo con un contador público y/o abogado antes de presentarlo ante terceros.";
+    const splitFooter = doc.splitTextToSize(footerText, maxWidth);
+    doc.text(splitFooter, margin, y, { align: 'center' });
 
-    doc.save("CARTA DE DECLARACIÓN DE ORIGEN Y MOVIMIENTOS LÍCITO DE FONDO.pdf");
+    doc.save(`CARTA_DECLARACION_${refDoc}.pdf`);
   };
 
   const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>, bucket: string, field: string) => {
@@ -653,7 +776,9 @@ const Profile: React.FC = () => {
                 <h3 className="text-sm font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Términos de Uso</h3>
                 <div className="text-[11px] text-on-surface-variant dark:text-white/60 leading-relaxed space-y-4 text-justify">
                     <p>Al utilizar BiMoneda, usted acepta que es el único responsable de la exactitud de los datos registrados y del cumplimiento de las obligaciones tributarias en su jurisdicción.</p>
-                    <p>La aplicación actúa como una herramienta técnica de apoyo administrativo y no constituye asesoría contable o legal formal.</p>
+                    <p>BiMoneda es una herramienta de software de apoyo administrativo y de facturación. No procesa pagos, no custodia fondos de terceros ni tiene acceso operativo a cuentas bancarias o billeteras de los usuarios. La validación de cada pago y la emisión del recibo o factura correspondiente son responsabilidad exclusiva del administrador del condominio.</p>
+                    <p>Los documentos generados dentro de la aplicación (incluyendo el Informe de Operación P2P y la Carta de Declaración de Origen y Movimientos Lícitos de Fondos) se elaboran con base en los datos ingresados por el propio usuario. BiMoneda actúa únicamente como herramienta de formato y organización de esa información; el usuario que firma y/o presenta dichos documentos ante terceros es el único responsable de la veracidad de su contenido.</p>
+                    <p>Estos documentos no constituyen asesoría contable, legal ni tributaria, y deben ser validados por un contador público y/o abogado antes de su presentación formal ante bancos, entes reguladores u otras autoridades.</p>
                     <p>Nos reservamos el derecho de actualizar los términos para cumplir con las normativas vigentes en materia de criptoactivos.</p>
                 </div>
              </div>

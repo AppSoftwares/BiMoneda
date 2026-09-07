@@ -70,91 +70,183 @@ const Crypto: React.FC = () => {
   };
 
   const exportIndividualReport = (op: any) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // 1. HEADER
-    doc.setFontSize(16);
-    doc.setTextColor(11, 37, 69);
-    doc.setFont("helvetica", "bold");
-    doc.text("INFORME OPERACIÓN - P2P", pageWidth / 2, 20, { align: 'center' });
-
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text(`Operación N°: ${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}`, pageWidth / 2, 29, { align: 'center' });
-
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    const introText = "Por medio de la presente se deja constancia que la actividad comercial de intercambio de criptoactivos realizada por el usuario se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, cumpliendo con los principios de transparencia y licitud de fondos.";
-    const splitIntro = doc.splitTextToSize(introText, pageWidth - 40);
-    doc.text(splitIntro, 20, 42, { align: 'justify', maxWidth: pageWidth - 40 });
-
-    // 2. TABLE
-    autoTable(doc, {
-      startY: 55,
-      head: [['Concepto', 'Detalle']],
-      body: [
-        ['Activo', op.asset],
-        ['Tipo', op.type === 'COMPRA' ? 'Compra' : 'Venta'],
-        ['Cantidad', `${op.amount_crypto}`],
-        ['Precio (Bs)', `${op.unit_price_bs.toLocaleString('es-VE')}`],
-        ['Total (Bs)', `${op.total_amount_bs.toLocaleString('es-VE')}`],
-        ['Fecha', new Date(op.date).toLocaleDateString('es-VE')],
-        ['Plataforma', op.platform],
-        ['Binance Order', op.order_number_binance || 'N/A'],
-        ['Contraparte', op.counterparty_nickname || op.counterparty_full_name || 'N/A']
-      ],
-      theme: 'grid',
-      headStyles: { fillColor: [11, 37, 69], textColor: [255, 255, 255] },
-      styles: { fontSize: 9, cellPadding: 3 },
-      columnStyles: {
-        '1': { halign: 'justify' }
-      }
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'letter'
     });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const dateStr = new Date(op.date).toLocaleDateString('es-VE');
 
-    // 3. LEGAL PARAGRAPHS
-    let y = (doc as any).lastAutoTable.finalY + 8;
-    doc.setFontSize(8.5);
-    const lineHeight = 4;
+    // Colors
+    const colorBlue: [number, number, number] = [31, 74, 122];
+    const colorTableBg: [number, number, number] = [238, 243, 250];
+    const colorTableBorder: [number, number, number] = [201, 214, 232];
+    const colorText: [number, number, number] = [26, 26, 26];
 
-    const p1 = "Las operaciones se realizan a través de plataformas digitales especializadas (Exchange Binance), tanto nacionales como internacionales, que permiten la conversión entre activos digitales y monedas fiducias. El proceso operativo incluye:\n\n• Registro y verificación: Se crea una cuenta en la plataforma, cumpliendo con los protocolos de verificación de identidad (KYC) y prevención de lavado de dinero (AML).\n• Depósito de fondos: Se transfieren fondos en moneda local o activos digitales a la cuenta del Exchange.\n• Intercambio: Se ejecutan operaciones de compra o venta de activos digitales según las condiciones del mercado.\n\n- Retiro de fondos: Los fondos convertidos pueden retirarse a cuentas bancarias nacionales o billeteras digitales, según disponibilidad y regulación vigente.";
-    const splitP1 = doc.splitTextToSize(p1, pageWidth - 40);
-    doc.text(splitP1, 20, y, { align: 'justify', maxWidth: pageWidth - 40 });
-    y += splitP1.length * lineHeight + 4;
+    // 1. Background & Borders
+    doc.setFillColor(253, 252, 248);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-    const p2 = "Estas plataformas operan bajo estándares de seguridad y trazabilidad, y en algunos casos están registradas ante la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP), conforme al Sistema Integral de Criptoactivos (SIC).";
-    const splitP2 = doc.splitTextToSize(p2, pageWidth - 40);
-    doc.text(splitP2, 20, y, { align: 'justify', maxWidth: pageWidth - 40 });
-    y += splitP2.length * lineHeight + 4;
+    // Outer double border
+    doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.setLineWidth(0.8);
+    doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+    doc.setLineWidth(0.2);
+    doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
 
-    const p3 = "Es importante señalar que estas ganancias son reinvertidas en parte, y el resto es liquidado a moneda fiduciaria a través de las plataformas de intercambio para su uso en la economía tradicional. Aunado a esto, estoy consciente de las obligaciones fiscales; incluyendo la potencial aplicación del IGTF y cualquier otro tributo que la ley venezolana establezca. Mi actividad está amparada por la normativa vigente, incluyendo el Decreto Constituyente sobre Criptoactivos. El destino de estos fondos es para cubrir gastos personales y familiares, tales como servicios, alimentación y salud. Esta declaración tiene como propósito garantizar la transparencia de mis operaciones financieras y contribuir a un ecosistema seguro y conforme a derecho.";
-    const splitP3 = doc.splitTextToSize(p3, pageWidth - 40);
-    doc.text(splitP3, 20, y, { align: 'justify', maxWidth: pageWidth - 40 });
-    y += splitP3.length * lineHeight + 8;
-
-    // 4. CERTIFICATION
+    // 2. Watermark
+    doc.saveGraphicsState();
     doc.setFont("helvetica", "bold");
-    doc.text("CERTIFICACIÓN DE INGRESOS (CRIPTO)", 20, y);
-    y += 5;
-    doc.setFont("helvetica", "normal");
-    const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString('es-VE')} producto de la liquidación de ${op.amount_crypto} ${op.asset} en la plataforma ${op.platform} con fecha ${new Date(op.date).toLocaleDateString('es-VE')}.`;
-    doc.text(doc.splitTextToSize(certText, pageWidth - 40), 20, y);
-    y += 12;
+    doc.setFontSize(66);
+    doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    (doc as any).setGState(new (doc as any).GState({ opacity: 0.06 }));
+    doc.text("INFORME P2P", pageWidth / 2, pageHeight / 2, {
+      align: 'center',
+      angle: 332
+    });
+    doc.restoreGraphicsState();
 
-    // 5. FOOTER REFERENCES
-    doc.setFontSize(7.5);
-    const refText = "Decreto Constituyente sobre el Sistema Integral de Criptoactivos y Providencia SUNACRIP N.º 008-2019 (Gaceta Oficial N.º 41.578).";
-    doc.text(doc.splitTextToSize(refText, pageWidth - 40), 20, y, { align: 'justify', maxWidth: pageWidth - 40 });
+    // 3. Header
+    let y = 25;
+    doc.setFont("times", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    doc.text("Informe de Operación Comercial — P2P", pageWidth / 2, y, { align: 'center' });
+    y += 7;
+    doc.setFont("times", "italic");
+    doc.setFontSize(9.5);
+    doc.setTextColor(68, 68, 68);
+    doc.text("Certificación de Ingresos por Liquidación de Activos Digitales", pageWidth / 2, y, { align: 'center' });
+    y += 5;
+    doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
     y += 8;
 
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(7);
-    const discText = "Este documento es generado como apoyo contable/administrativo con base en los datos registrados por el usuario. No constituye asesoría legal, contable ni tributaria.";
-    doc.text(doc.splitTextToSize(discText, pageWidth - 40), 20, y, { align: 'justify', maxWidth: pageWidth - 40 });
+    // Doc Meta
+    doc.setFont("times", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.text(`N.° de Operación: ${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}`, 20, y);
+    doc.text(`Fecha de emisión: ${dateStr}`, pageWidth - 20, y, { align: 'right' });
+    y += 10;
 
-    doc.save(`Informe_P2P_${op.order_number_binance || 'OP'}.pdf`);
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
 
-    doc.save(`Informe_P2P_${op.order_number_binance || 'OP'}.pdf`);
+    // Helper for sections
+    const drawSection = (title: string) => {
+      doc.setFont("times", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+      doc.text(title, margin, y);
+      y += 2;
+      doc.setDrawColor(colorTableBorder[0], colorTableBorder[1], colorTableBorder[2]);
+      doc.setLineWidth(0.2);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+    };
+
+    // I. Marco Legal
+    drawSection("I. Marco Legal Aplicable");
+    doc.setFont("times", "normal");
+    doc.setFontSize(9.7);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    const introText = "Se deja constancia que la actividad comercial de intercambio de criptoactivos aquí descrita se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, en cumplimiento de los principios de transparencia y licitud de fondos, conforme al Decreto Constituyente sobre el Sistema Integral de Criptoactivos y la Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).";
+    const splitIntro = doc.splitTextToSize(introText, maxWidth);
+    doc.text(splitIntro, margin, y, { align: 'justify' });
+    y += splitIntro.length * 4.5 + 4;
+
+    // II. Detalle de la Operación
+    drawSection("II. Detalle de la Operación");
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      theme: 'grid',
+      styles: { fontSize: 9.5, font: 'times', cellPadding: 2, lineColor: colorTableBorder },
+      columnStyles: {
+        0: { fillColor: colorTableBg, textColor: colorBlue, fontStyle: 'bold', cellWidth: 40 },
+        1: { cellWidth: 45 },
+        2: { fillColor: colorTableBg, textColor: colorBlue, fontStyle: 'bold', cellWidth: 40 },
+        3: { cellWidth: 45 }
+      },
+      body: [
+        ['Activo', op.asset, 'Tipo de operación', op.type === 'COMPRA' ? 'Compra' : 'Venta'],
+        ['Cantidad', `${op.amount_crypto} USDT`, 'Precio unitario', `Bs. ${op.unit_price_bs.toLocaleString('es-VE')}`],
+        ['Total', `Bs. ${op.total_amount_bs.toLocaleString('es-VE')}`, 'Fecha', dateStr],
+        ['Plataforma', op.platform, 'N.° de orden', op.order_number_binance || 'N/A']
+      ]
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // III. Proceso Operativo
+    drawSection("III. Proceso Operativo");
+    doc.setFontSize(9.5);
+    const steps = [
+      "1. Registro y verificación: cuenta creada bajo protocolos KYC y prevención de lavado de dinero (AML).",
+      "2. Depósito de fondos: transferencia de fondos en moneda local o activos digitales al Exchange.",
+      "3. Intercambio: ejecución de compra/venta de activos digitales según condiciones de mercado.",
+      "4. Retiro de fondos: conversión y transferencia a cuentas bancarias nacionales o billeteras digitales."
+    ];
+    steps.forEach(step => {
+      const splitStep = doc.splitTextToSize(step, maxWidth - 5);
+      doc.text(splitStep, margin + 5, y);
+      y += splitStep.length * 4.5;
+    });
+    y += 2;
+    const platText = "Las plataformas utilizadas operan bajo estándares de seguridad y trazabilidad, encontrándose en algunos casos registradas ante la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP), conforme al Sistema Integral de Criptoactivos (SIC).";
+    const splitPlat = doc.splitTextToSize(platText, maxWidth);
+    doc.text(splitPlat, margin, y, { align: 'justify' });
+    y += splitPlat.length * 4.5 + 4;
+
+    // IV. Destino de Fondos
+    drawSection("IV. Destino de los Fondos y Obligaciones Fiscales");
+    const taxText = "Las ganancias obtenidas son reinvertidas parcialmente, liquidándose el resto a moneda fiduciaria para su uso en la economía tradicional. El declarante manifiesta estar en conocimiento de sus obligaciones fiscales, incluyendo la eventual aplicación del IGTF y demás tributos aplicables conforme a la ley venezolana. El destino de los fondos corresponde a gastos personales y familiares (servicios, alimentación, salud).";
+    const splitTax = doc.splitTextToSize(taxText, maxWidth);
+    doc.text(splitTax, margin, y, { align: 'justify' });
+    y += splitTax.length * 4.5 + 8;
+
+    // V. Certificación
+    doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.setLineWidth(0.2);
+    doc.setFillColor(245, 248, 252);
+    doc.rect(margin, y, maxWidth, 18, 'FD');
+    y += 5;
+    doc.setFont("times", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.text("V. Certificación de Ingresos (Cripto)", margin + 5, y);
+    y += 5;
+    doc.setFont("times", "normal");
+    doc.setFontSize(9.3);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString('es-VE')} producto de la liquidación de ${op.amount_crypto} USDT en la plataforma ${op.platform} con fecha ${dateStr}.`;
+    doc.text(doc.splitTextToSize(certText, maxWidth - 10), margin + 5, y);
+    y += 15;
+
+    // Signature/Base
+    doc.setFontSize(9);
+    doc.setTextColor(68, 68, 68);
+    doc.text("Base normativa: Decreto Constituyente sobre el Sistema Integral de Criptoactivos", pageWidth / 2, y, { align: 'center' });
+    y += 4;
+    doc.text("y Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).", pageWidth / 2, y, { align: 'center' });
+
+    // Footer
+    y = pageHeight - 25;
+    doc.setDrawColor(159, 179, 204);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 4;
+    doc.setFontSize(7.3);
+    doc.setTextColor(102, 102, 102);
+    doc.setFont("times", "italic");
+    const footerText = t('legal_report_disclaimer');
+    const splitFooter = doc.splitTextToSize(footerText, maxWidth);
+    doc.text(splitFooter, margin, y, { align: 'center' });
+
+    doc.save(`Informe_P2P_${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}.pdf`);
   };
 
   const exportHistory = (format: 'PDF' | 'CSV') => {
