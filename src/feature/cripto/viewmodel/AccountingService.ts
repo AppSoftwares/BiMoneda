@@ -1,13 +1,24 @@
 import Big from 'big.js';
 import { supabase } from '../../../data/db/supabase';
 
-// Intentar importar CapacitorHttp para evitar CORS en móviles
-let CapacitorHttp: any = null;
-try {
-    import('@capacitor/core').then(m => {
-        CapacitorHttp = (m as any).CapacitorHttp;
-    });
-} catch (e) {}
+// Helper para obtener CapacitorHttp dinámicamente solo cuando se necesite
+const getCapacitorHttp = async () => {
+    try {
+        const { CapacitorHttp } = await import('@capacitor/core');
+        return CapacitorHttp;
+    } catch (e) {
+        return null;
+    }
+};
+
+const isNative = () => {
+    try {
+        // @ts-ignore
+        return window.Capacitor?.isNativePlatform();
+    } catch (e) {
+        return false;
+    }
+};
 
 export interface CryptoOp {
   type: 'COMPRA' | 'VENTA';
@@ -59,13 +70,18 @@ class AccountingService {
 
     let result: any;
 
-    // Si estamos en entorno Capacitor (móvil), usamos CapacitorHttp para saltar CORS
-    if (CapacitorHttp) {
-        const response = await CapacitorHttp.get({
-            url,
-            headers: { 'X-MBX-APIKEY': apiKey }
-        });
-        result = response.data;
+    // Si estamos en entorno nativo (móvil), usamos CapacitorHttp para saltar CORS
+    if (isNative()) {
+        const capHttp = await getCapacitorHttp();
+        if (capHttp) {
+            const response = await capHttp.get({
+                url,
+                headers: { 'X-MBX-APIKEY': apiKey }
+            });
+            result = response.data;
+        } else {
+            throw new Error('Plugin de Capacitor no disponible.');
+        }
     } else {
         // En navegador (localhost), esto suele dar error "Failed to fetch" por CORS
         try {
