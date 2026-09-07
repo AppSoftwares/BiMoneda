@@ -109,29 +109,29 @@ const Crypto: React.FC = () => {
     doc.restoreGraphicsState();
 
     // 3. Header
-    let y = 25;
+    let y = 20;
     doc.setFont("times", "bold");
-    doc.setFontSize(16);
+    doc.setFontSize(14);
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     doc.text("Informe de Operación Comercial — P2P", pageWidth / 2, y, { align: 'center' });
-    y += 7;
+    y += 6;
     doc.setFont("times", "italic");
-    doc.setFontSize(9.5);
+    doc.setFontSize(8.7);
     doc.setTextColor(68, 68, 68);
     doc.text("Certificación de Ingresos por Liquidación de Activos Digitales", pageWidth / 2, y, { align: 'center' });
-    y += 5;
+    y += 4;
     doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
     doc.setLineWidth(0.5);
     doc.line(20, y, pageWidth - 20, y);
-    y += 8;
+    y += 7;
 
     // Doc Meta
     doc.setFont("times", "normal");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
     doc.text(`N.° de Operación: ${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}`, 20, y);
     doc.text(`Fecha de emisión: ${dateStr}`, pageWidth - 20, y, { align: 'right' });
-    y += 10;
+    y += 8;
 
     const margin = 20;
     const maxWidth = pageWidth - (margin * 2);
@@ -139,25 +139,25 @@ const Crypto: React.FC = () => {
     // Helper for sections
     const drawSection = (title: string) => {
       doc.setFont("times", "bold");
-      doc.setFontSize(10.5);
+      doc.setFontSize(9.5);
       doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
       doc.text(title, margin, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(colorTableBorder[0], colorTableBorder[1], colorTableBorder[2]);
       doc.setLineWidth(0.2);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 6;
+      y += 5;
     };
 
     // I. Marco Legal
     drawSection("I. Marco Legal Aplicable");
     doc.setFont("times", "normal");
-    doc.setFontSize(9.7);
+    doc.setFontSize(8.4);
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     const introText = "Se deja constancia que la actividad comercial de intercambio de criptoactivos aquí descrita se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, en cumplimiento de los principios de transparencia y licitud de fondos, conforme al Decreto Constituyente sobre el Sistema Integral de Criptoactivos y la Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).";
     const splitIntro = doc.splitTextToSize(introText, maxWidth);
     doc.text(splitIntro, margin, y, { align: 'justify' });
-    y += splitIntro.length * 4.5 + 4;
+    y += splitIntro.length * 3.8 + 3;
 
     // II. Detalle de la Operación
     drawSection("II. Detalle de la Operación");
@@ -165,7 +165,7 @@ const Crypto: React.FC = () => {
       startY: y,
       margin: { left: margin, right: margin },
       theme: 'grid',
-      styles: { fontSize: 9.5, font: 'times', cellPadding: 2, lineColor: colorTableBorder },
+      styles: { fontSize: 8.5, font: 'times', cellPadding: 1.5, lineColor: colorTableBorder },
       columnStyles: {
         0: { fillColor: colorTableBg, textColor: colorBlue, fontStyle: 'bold', cellWidth: 40 },
         1: { cellWidth: 45 },
@@ -179,11 +179,11 @@ const Crypto: React.FC = () => {
         ['Plataforma', op.platform, 'N.° de orden', op.order_number_binance || 'N/A']
       ]
     });
-    y = (doc as any).lastAutoTable.finalY + 8;
+    y = (doc as any).lastAutoTable.finalY + 6;
 
     // III. Proceso Operativo
     drawSection("III. Proceso Operativo");
-    doc.setFontSize(9.5);
+    doc.setFontSize(8.4);
     const steps = [
       "1. Registro y verificación: cuenta creada bajo protocolos KYC y prevención de lavado de dinero (AML).",
       "2. Depósito de fondos: transferencia de fondos en moneda local o activos digitales al Exchange.",
@@ -193,53 +193,61 @@ const Crypto: React.FC = () => {
     steps.forEach(step => {
       const splitStep = doc.splitTextToSize(step, maxWidth - 5);
       doc.text(splitStep, margin + 5, y);
-      y += splitStep.length * 4.5;
+      y += splitStep.length * 3.8;
     });
-    y += 2;
+    y += 1.5;
     const platText = "Las plataformas utilizadas operan bajo estándares de seguridad y trazabilidad, encontrándose en algunos casos registradas ante la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP), conforme al Sistema Integral de Criptoactivos (SIC).";
     const splitPlat = doc.splitTextToSize(platText, maxWidth);
     doc.text(splitPlat, margin, y, { align: 'justify' });
-    y += splitPlat.length * 4.5 + 4;
+    y += splitPlat.length * 3.8 + 3;
 
     // IV. Destino de Fondos
     drawSection("IV. Destino de los Fondos y Obligaciones Fiscales");
-    const taxText = "Las ganancias obtenidas son reinvertidas parcialmente, liquidándose el resto a moneda fiduciaria para su uso en la economía tradicional. El declarante manifiesta estar en conocimiento de sus obligaciones fiscales, incluyendo la eventual aplicación del IGTF y demás tributos aplicables conforme a la ley venezolana. El destino de los fondos corresponde a gastos personales y familiares (servicios, alimentación, salud).";
-    const splitTax = doc.splitTextToSize(taxText, maxWidth);
-    doc.text(splitTax, margin, y, { align: 'justify' });
-    y += splitTax.length * 4.5 + 8;
+    const p1 = "Estas ganancias son reinvertidas en parte, y el resto es liquidado a moneda fiduciaria a través de las plataformas de intercambio para su uso en la economía tradicional, gestionándose los ingresos conforme a principios de legalidad, transparencia y trazabilidad.";
+    const p2 = "Estoy consciente de las obligaciones fiscales derivadas de esta actividad, incluyendo la potencial aplicación del Impuesto a las Grandes Transacciones Financieras (IGTF) y cualquier otro tributo que la ley venezolana establezca para operaciones con activos digitales. Me comprometo a cumplir con mis responsabilidades tributarias y a declarar las ganancias obtenidas conforme a la normativa del Servicio Nacional Integrado de Administración Aduanera y Tributaria (SENIAT).";
+    const p3 = "Marco legal y cumplimiento normativo: entiendo la importancia de la prevención de la Legitimación de Capitales y el Financiamiento al Terrorismo (LC/FT), por lo que todas mis transacciones se realizan en estricto cumplimiento del marco legal venezolano. Mi actividad está amparada por el Decreto Constituyente sobre Criptoactivos y las regulaciones emitidas por la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP).";
+    const p4 = "Cabe mencionar que actualmente no me encuentro registrado ante la SUNACRIP, ya que dicho organismo se encuentra en un proceso de reestructuración técnica y administrativa; no obstante, las criptomonedas siguen siendo totalmente legales en Venezuela, respaldadas por el marco regulatorio vigente. Me encuentro en espera de la reanudación de actividades del ente para proceder con mi registro formal.";
+    const p5 = "El destino de estos fondos es cubrir mis gastos personales y familiares, tales como pago de servicios (luz, agua, internet), alimentación, educación y salud, entre otros. Esta declaración tiene como propósito informar y garantizar la transparencia de mis operaciones financieras, facilitar el cumplimiento de los protocolos internos del banco y contribuir a la consolidación de un ecosistema financiero moderno, seguro y conforme a derecho.";
+
+    [p1, p2, p3, p4, p5].forEach(p => {
+        const splitP = doc.splitTextToSize(p, maxWidth);
+        doc.text(splitP, margin, y, { align: 'justify' });
+        y += splitP.length * 3.8 + 2;
+    });
+    y += 2;
 
     // V. Certificación
     doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
     doc.setLineWidth(0.2);
     doc.setFillColor(245, 248, 252);
-    doc.rect(margin, y, maxWidth, 18, 'FD');
-    y += 5;
+    doc.rect(margin, y, maxWidth, 14, 'FD');
+    y += 4;
     doc.setFont("times", "bold");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
     doc.text("V. Certificación de Ingresos (Cripto)", margin + 5, y);
-    y += 5;
+    y += 4;
     doc.setFont("times", "normal");
-    doc.setFontSize(9.3);
+    doc.setFontSize(8.4);
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     const certText = `Se certifica que el usuario ha recibido la cantidad de Bs. ${op.total_amount_bs.toLocaleString('es-VE')} producto de la liquidación de ${op.amount_crypto} USDT en la plataforma ${op.platform} con fecha ${dateStr}.`;
     doc.text(doc.splitTextToSize(certText, maxWidth - 10), margin + 5, y);
-    y += 15;
+    y += 12;
 
     // Signature/Base
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(68, 68, 68);
     doc.text("Base normativa: Decreto Constituyente sobre el Sistema Integral de Criptoactivos", pageWidth / 2, y, { align: 'center' });
-    y += 4;
+    y += 3.5;
     doc.text("y Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).", pageWidth / 2, y, { align: 'center' });
 
     // Footer
-    y = pageHeight - 25;
+    y = pageHeight - 18;
     doc.setDrawColor(159, 179, 204);
     doc.setLineWidth(0.2);
     doc.line(margin, y, pageWidth - margin, y);
-    y += 4;
-    doc.setFontSize(7.3);
+    y += 3;
+    doc.setFontSize(6.6);
     doc.setTextColor(102, 102, 102);
     doc.setFont("times", "italic");
     const footerText = t('legal_report_disclaimer');

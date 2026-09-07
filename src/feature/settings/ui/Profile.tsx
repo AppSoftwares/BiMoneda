@@ -281,7 +281,8 @@ const Profile: React.FC = () => {
     // III. Declaración Jurada
     drawSection("III. Declaración Jurada");
     doc.setFontSize(9.7);
-    const swornText = "Declaro bajo mi responsabilidad que los capitales, valores o títulos producto de mi actividad de arbitraje de activos digitales y operaciones P2P proceden de actividad lícita, verificable ante los organismos competentes, sin relación alguna con hechos ilícitos contemplados en la legislación venezolana. Los fondos provienen de ingresos personales lícitos, derivados de mi actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer), ejecutada a través de plataformas de intercambio de criptoactivos autorizadas.";
+    const occupation = editCompany?.occupation || 'comerciante independiente';
+    const swornText = `Declaro bajo mi responsabilidad que los capitales, valores o títulos producto de mi actividad de arbitraje de activos digitales y operaciones P2P proceden de actividad lícita, verificable ante los organismos competentes, sin relación alguna con hechos ilícitos contemplados en la legislación venezolana. Los fondos utilizados provienen de ingresos personales lícitos y verificables, debido a que soy ${occupation} y, aunado a esto, también invierto mi dinero en compra-venta de activos digitales, como la actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer), ejecutada a través de plataformas de intercambio de criptoactivos autorizadas.`;
     const splitSworn = doc.splitTextToSize(swornText, maxWidth);
     doc.text(splitSworn, margin, y, { align: 'justify' });
     y += splitSworn.length * 4.5 + 4;
