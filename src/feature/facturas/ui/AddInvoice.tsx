@@ -157,7 +157,7 @@ const AddInvoice: React.FC = () => {
       try {
         const entryDate = now.toISOString().split('T')[0];
 
-        const { error: ledgerError1 } = await supabase.from('ledger_entries').insert([{
+        const { error: ledgerError1 } = await (supabase as any).from('ledger_entries').insert([{
             date: entryDate,
             debit_account: 'Cuentas por Cobrar',
             credit_account: 'Ingresos por Servicios',
@@ -168,7 +168,7 @@ const AddInvoice: React.FC = () => {
         if (ledgerError1) throw ledgerError1;
 
           if (ivaUsd > 0) {
-            const { error: ledgerError2 } = await supabase.from('ledger_entries').insert([{
+            const { error: ledgerError2 } = await (supabase as any).from('ledger_entries').insert([{
                 date: entryDate,
                 debit_account: 'Cuentas por Cobrar',
                 credit_account: 'IVA por Pagar',
