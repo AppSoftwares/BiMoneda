@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../entity/database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder';
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '../entity/database.types';
 
-if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
-  console.warn('Supabase configuration is missing. The app will likely fail to load data.');
-}
+// Hardcoded production keys to ensure the app works across all platforms without extra config
+const supabaseUrl = 'https://nkhhkpunrgjcrzixidcu.supabase.co';
+const supabaseAnonKey = 'sb_publishable_tyDoUvHV_iMqcIwfpxQWow_yxXNpLEg';
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
