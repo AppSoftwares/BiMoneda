@@ -24,6 +24,7 @@ const Profile: React.FC = () => {
 
   // Password Change State
   const [passwords, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+  const [showPassword, setShowPassword] = useState(false);
 
   // File Input Refs
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +38,14 @@ const Profile: React.FC = () => {
     address: '',
     phone: '',
     email: '',
-    economic_activity_code: ''
+    economic_activity_code: '',
+    full_name: '',
+    id_number: '',
+    nationality: 'venezolana',
+    marital_status: '',
+    occupation: '',
+    city: '',
+    state: ''
   });
 
   useEffect(() => {
@@ -47,7 +55,6 @@ const Profile: React.FC = () => {
         setUser(user);
         setAvatarUrl(user.user_metadata?.avatar_url || null);
         if (user.user_metadata?.binance_key) setBinanceKey(user.user_metadata.binance_key);
-        if (user.user_metadata?.binance_secret) setBinanceSecret(user.user_metadata.binance_secret);
       }
 
       const { data: compData } = await (supabase as any).from('company_profile').select('*').single();
@@ -59,7 +66,14 @@ const Profile: React.FC = () => {
           address: compData.address || '',
           phone: compData.phone || '',
           email: compData.email || '',
-          economic_activity_code: compData.economic_activity_code || '9499'
+          economic_activity_code: compData.economic_activity_code || '9499',
+          full_name: compData.full_name || '',
+          id_number: compData.id_number || '',
+          nationality: compData.nationality || 'venezolana',
+          marital_status: compData.marital_status || '',
+          occupation: compData.occupation || '',
+          city: compData.city || '',
+          state: compData.state || ''
         });
       }
     };
@@ -77,6 +91,13 @@ const Profile: React.FC = () => {
         phone: editCompany.phone,
         email: editCompany.email,
         economic_activity_code: editCompany.economic_activity_code,
+        full_name: editCompany.full_name,
+        id_number: editCompany.id_number.toUpperCase(),
+        nationality: editCompany.nationality,
+        marital_status: editCompany.marital_status,
+        occupation: editCompany.occupation,
+        city: editCompany.city,
+        state: editCompany.state,
         updated_at: new Date().toISOString()
       };
 
@@ -129,28 +150,84 @@ const Profile: React.FC = () => {
   const generateDeclarationLetter = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const today = new Date();
+    const dia = today.getDate();
+    const mes = today.toLocaleDateString('es-VE', { month: 'long' });
+    const anio = today.getFullYear();
+    const ciudad = editCompany?.city || profile?.address?.split(',')[0] || '________________';
 
-    doc.setFontSize(14);
+    const margin = 20;
+    const maxWidth = pageWidth - (margin * 2);
+    let y = 15;
+
+    doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
-    doc.text("CARTA DE DECLARACIÓN DE ORIGEN Y MOVIMIENTOS LÍCITO DE FONDOS", pageWidth/2, 25, { align: 'center' });
-    doc.text("VINCULADOS A LA ACTIVIDAD DE ACTIVOS DIGITALES", pageWidth/2, 32, { align: 'center' });
+    const titleLines = doc.splitTextToSize(
+      "CARTA DE DECLARACIÓN DE ORIGEN Y MOVIMIENTOS LÍCITO DE FONDO VINCULADOS A LA ACTIVIDAD DE ACTIVOS DIGITALES",
+      maxWidth
+    );
+    doc.text(titleLines, pageWidth / 2, y, { align: 'center' });
+    y += titleLines.length * 5 + 5;
 
-    doc.setFontSize(10);
+    doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
+    const lineHeight = 4;
 
-    const bodyText = `Yo, ${profile?.name || '________________'}, titular de la Cédula de Identidad / RIF N.º ${profile?.rif || '________________'}, en mi carácter de usuario de la plataforma BiMoneda, declaro bajo fe de juramento que los fondos utilizados para mis operaciones con activos digitales (Criptoactivos) provienen de actividades lícitas y de mi giro comercial declarado.\n\nEste documento se emite como un BORRADOR TÉCNICO PARA REVISIÓN CONTABLE, basado en el historial de operaciones registrado en la aplicación BiMoneda hasta la fecha ${new Date().toLocaleDateString('es-VE')}.\n\nCertifico que las transacciones detalladas en mis libros contables digitales corresponden a la realidad de mis operaciones P2P y liquidaciones de activos. Los mismos son producto de mi actividad económica y no guardan relación con fondos de procedencia ilícita ni legitimación de capitales.`;
+    const introText = "De acuerdo a lo establecido por el decreto constituyente sobre el Sistema Integral de Criptoactivos, publicado en Gaceta oficial N° 41.575, de fecha 30 de enero 2019, el cual establece las bases para la creación, circulación, uso e intercambio de criptoactivos por parte de la persona natural y jurídicas, públicas y privadas, dentro del territorio nacional. Asimismo, según lo establecido en el artículo 27 de la Resolución N° 008 de fecha 31 de enero de 2019, publicada en Gaceta Oficial de la República Bolivariana de Venezuela N° 41.581, de fecha 7 de febrero de 2019, el cual establece las \"Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo\"";
+    let split = doc.splitTextToSize(introText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
 
-    const splitText = doc.splitTextToSize(bodyText, pageWidth - 40);
-    doc.text(splitText, 20, 50);
+    const declText = `Yo, ${editCompany?.full_name || editCompany?.name || '________________'}, de nacionalidad ${editCompany?.nationality || '________________'}, mayor de edad, de estado civil ${editCompany?.marital_status || '________________'}, número telefónico ${editCompany?.phone || '________________'}, titular de la cédula de identidad y/o pasaporte número ${editCompany?.id_number || editCompany?.rif || '________________'}, correo electrónico ${editCompany?.email || user?.email || '________________'}, civilmente hábil, de profesión u ocupación ${editCompany?.occupation || '________________'} y domiciliado en la ciudad de ${editCompany?.city || '________________'}, estado ${editCompany?.state || '________________'}, declaro que los capitales, valores o títulos producto de actividad de arbitraje de activos digitales y operaciones P2P que presento, proceden de actividad lícita, lo cual puede ser corroborado por los organismos competentes y no tienen relación alguna con actividades, acciones o hechos ilícitos contemplados en las leyes venezolanas.`;
+    split = doc.splitTextToSize(declText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
 
-    doc.text("__________________________", pageWidth/2, 140, { align: 'center' });
-    doc.text("Firma del Declarante", pageWidth/2, 145, { align: 'center' });
+    const swornText = "Declaro bajo declaración jurada que los fondos utilizados provienen de ingresos personales lícitos y verificables, debido a que soy comerciante independiente y aunado a esto también invierto mi dinero en compra-venta de activos digitales, como la actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer) a través de plataformas de intercambio de criptoactivos autorizadas. La operación consiste en la compra-venta cíclica de activos digitales (USDT) utilizando cuentas propias en moneda extranjera y cuentas en moneda nacional, obteniendo un margen de ganancia por el diferencial cambiario y spread de mercado en cada ciclo operativo. Con fines lícitos, transparente y conforme a los principios de inclusión financiera, innovación tecnológica y soberanía económica establecidos en el Decreto Constituyente, es importante destacar que no se prestan servicios a terceros, como casa de cambio o servicios de custodia. Todas las operaciones son a título personal.";
+    split = doc.splitTextToSize(swornText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
 
-    doc.setFontSize(8);
+    const kycText = "Pueden realizar la verificación de la cuenta en los Exchange Binance, comprobando que el usuario posee niveles de verificación de identidad de alta seguridad (KYC completado).";
+    split = doc.splitTextToSize(kycText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
+
+    const traceText = "Pueden examinar la trazabilidad de los fondos demostrando que el dinero debitado de la cuenta de moneda extranjera fue destinado a la adquisición de USDT, los cuales posteriormente se liquidaron en el mercado P2P nacional para obtener moneda nacional, reinvirtiéndose los bolívares en la recompra de saldo en divisas para reiniciar el ciclo mercantil.";
+    split = doc.splitTextToSize(traceText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
+
+    const historyText = "Pueden realizar la revisión del historial de órdenes ejecutadas en los últimos meses, validando que el incremento patrimonial en las cuentas bancarias corresponde estrictamente con el volumen de operaciones y los márgenes de ganancia reportados por las plataformas de intercambio.";
+    split = doc.splitTextToSize(historyText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 4;
+
+    const closingText = "Por lo que declaro que los fondos movilizados en mis cuentas tienen un origen lícito y trazable, derivado de una actividad comercial legítima de arbitraje de activos digitales por cuenta propia. Los movimientos bancarios guardan perfecta correlación con la compra, custodia temporal, venta y toma de ganancias de los criptoactivos declarados.";
+    split = doc.splitTextToSize(closingText, maxWidth);
+    doc.text(split, margin, y, { align: 'justify', maxWidth: maxWidth });
+    y += split.length * lineHeight + 8;
+
+    doc.text(`Se expide la presente certificación en la ciudad de ${ciudad}, a los ${dia} días del mes de ${mes} de ${anio}.`, margin, y);
+    y += 15;
+
+    doc.setFont("helvetica", "bold");
+    doc.text(editCompany?.full_name || editCompany?.name || '________________', margin, y);
+    y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.text(editCompany?.id_number || editCompany?.rif || '________________', margin, y);
+    y += 5;
+    doc.text(editCompany?.phone || '________________', margin, y);
+    y += 10;
+
+    doc.setFontSize(7);
     doc.setTextColor(150);
-    doc.text("NOTA: Este documento debe ser validado, firmado y sellado por un Contador Público Colegiado para su presentación legal.", pageWidth/2, 160, { align: 'center' });
+    const footerText = "Este documento es generado como apoyo técnico. No constituye asesoría legal, contable ni tributaria. Se recomienda validar con un contador público y/o abogado antes de presentarlo ante terceros.";
+    const footerLines = doc.splitTextToSize(footerText, maxWidth);
+    doc.text(footerLines, margin, y, { align: 'justify', maxWidth: maxWidth });
 
-    doc.save("Declaracion_Fondos_Licitos_BiMoneda.pdf");
+    doc.save("CARTA DE DECLARACIÓN DE ORIGEN Y MOVIMIENTOS LÍCITO DE FONDO.pdf");
   };
 
   const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>, bucket: string, field: string) => {
@@ -280,6 +357,28 @@ const Profile: React.FC = () => {
                   <span className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Nombre / Razón Social</span>
                   <input value={editCompany.name} onChange={e => setEditCompany({...editCompany, name: e.target.value})} className="w-full text-sm font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" />
                 </div>
+
+                <div className="space-y-2 border-b border-outline-variant/20 dark:border-white/10 pb-4">
+                  <span className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Nombre Completo (Titular)</span>
+                  <input value={editCompany.full_name} onChange={e => setEditCompany({...editCompany, full_name: e.target.value})} className="w-full text-sm font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" placeholder="Nombre completo para documentos legales" />
+                </div>
+
+                <div className="space-y-2 border-b border-outline-variant/20 dark:border-white/10 pb-4">
+                  <span className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Cédula / Pasaporte</span>
+                  <input value={editCompany.id_number} onChange={e => setEditCompany({...editCompany, id_number: e.target.value})} className="w-full text-sm font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" placeholder="V-00000000" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-b border-outline-variant/20 dark:border-white/10 pb-4">
+                   <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Nacionalidad</span>
+                      <input value={editCompany.nationality} onChange={e => setEditCompany({...editCompany, nationality: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                   </div>
+                   <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Estado Civil</span>
+                      <input value={editCompany.marital_status} onChange={e => setEditCompany({...editCompany, marital_status: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                   </div>
+                </div>
+
                 <div className="space-y-2 border-b border-outline-variant/20 dark:border-white/10 pb-4">
                   <span className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Dirección Fiscal</span>
                   <textarea value={editCompany.address} onChange={e => setEditCompany({...editCompany, address: e.target.value})} className="w-full text-xs font-medium text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" rows={3} />
@@ -287,12 +386,28 @@ const Profile: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4 border-b border-outline-variant/20 dark:border-white/10 pb-4">
                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Ciudad</span>
+                      <input value={editCompany.city} onChange={e => setEditCompany({...editCompany, city: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                   </div>
+                   <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Estado</span>
+                      <input value={editCompany.state} onChange={e => setEditCompany({...editCompany, state: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                   </div>
+                </div>
+
+                <div className="space-y-2 border-b border-outline-variant/20 dark:border-white/10 pb-4">
+                   <span className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Profesión / Ocupación</span>
+                   <input value={editCompany.occupation} onChange={e => setEditCompany({...editCompany, occupation: e.target.value})} className="w-full text-sm font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 border-b border-outline-variant/20 dark:border-white/10 pb-4">
+                   <div className="space-y-2">
                       <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Teléfono</span>
-                      <input value={editCompany.phone} onChange={e => setEditCompany({...editCompany, phone: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                      <input value={editCompany.phone} onChange={e => setEditCompany({...editCompany, phone: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" />
                    </div>
                    <div className="space-y-2">
                       <span className="text-[10px] font-bold text-on-surface-variant dark:text-white/40 uppercase tracking-widest block">Email</span>
-                      <input value={editCompany.email} onChange={e => setEditCompany({...editCompany, email: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md" />
+                      <input value={editCompany.email} onChange={e => setEditCompany({...editCompany, email: e.target.value})} className="w-full text-xs font-bold text-primary dark:text-white bg-surface-container-low dark:bg-white/10 p-3 rounded-md outline-none" />
                    </div>
                 </div>
 
@@ -385,9 +500,10 @@ const Profile: React.FC = () => {
                 <div className="space-y-6">
                    <h3 className="text-xl font-black text-primary dark:text-white tracking-tight uppercase">Cambiar Contraseña</h3>
                    <div className="space-y-4">
-                     <div className="space-y-2">
+                     <div className="space-y-2 relative">
                        <label className="text-[10px] font-black text-secondary uppercase tracking-widest ml-1">Contraseña Actual</label>
-                       <input type="password" value={passwords.current} onChange={e => setPasswordData({...passwords, current: e.target.value})} className="w-full bg-surface-container-low dark:bg-white/10 p-5 rounded-2xl text-sm text-primary dark:text-white" placeholder="••••••••" />
+                       <input type={showPassword ? "text" : "password"} value={passwords.current} onChange={e => setPasswordData({...passwords, current: e.target.value})} className="w-full bg-surface-container-low dark:bg-white/10 p-5 rounded-2xl text-sm text-primary dark:text-white" placeholder="••••••••" />
+                       <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-[45px] text-outline"><svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg></button>
                      </div>
                      <div className="space-y-2">
                        <label className="text-[10px] font-black text-secondary uppercase tracking-widest ml-1">Nueva Contraseña</label>

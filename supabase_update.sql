@@ -28,6 +28,13 @@ CREATE TABLE public.company_profile (
     logo_url TEXT,
     signature_url TEXT,
     economic_activity_code TEXT DEFAULT '9499',
+    full_name TEXT,
+    id_number TEXT,
+    nationality TEXT DEFAULT 'venezolana',
+    marital_status TEXT,
+    occupation TEXT,
+    city TEXT,
+    state TEXT,
     cert_provider_name TEXT,
     cert_provider_rif TEXT,
     cert_provider_providence TEXT,
@@ -72,12 +79,38 @@ CREATE TABLE public.client_subscriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. PERMISOS (RLS)
+-- 6. Nuevas Tablas de Contabilidad
+CREATE TABLE IF NOT EXISTS public.ledger_entries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    operation_id UUID, -- Opcional, para vincular a P2P
+    date DATE NOT NULL DEFAULT CURRENT_DATE,
+    debit_account TEXT NOT NULL,
+    credit_account TEXT NOT NULL,
+    amount_bs NUMERIC(20, 2) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.inventory_movements (
+    id BIGSERIAL PRIMARY KEY,
+    operation_id UUID REFERENCES public.crypto_operations(id) ON DELETE CASCADE,
+    in_qty NUMERIC(20, 8),
+    out_qty NUMERIC(20, 8),
+    avg_cost NUMERIC(20, 8) NOT NULL,
+    balance_qty NUMERIC(20, 8) NOT NULL,
+    balance_value_bs NUMERIC(20, 2) NOT NULL,
+    realized_profit_bs NUMERIC(20, 2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. PERMISOS (RLS)
 ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_profile ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crypto_operations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.client_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ledger_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.inventory_movements ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Todo para autenticados clients" ON public.clients;
 CREATE POLICY "Todo para autenticados clients" ON public.clients FOR ALL USING (true) WITH CHECK (true);
@@ -94,5 +127,11 @@ CREATE POLICY "Todo para autenticados crypto" ON public.crypto_operations FOR AL
 DROP POLICY IF EXISTS "Todo para autenticados subscriptions" ON public.client_subscriptions;
 CREATE POLICY "Todo para autenticados subscriptions" ON public.client_subscriptions FOR ALL USING (true) WITH CHECK (true);
 
--- 7. RECARGAR CACHÉ
+DROP POLICY IF EXISTS "Todo para autenticados ledger" ON public.ledger_entries;
+CREATE POLICY "Todo para autenticados ledger" ON public.ledger_entries FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Todo para autenticados inventory" ON public.inventory_movements;
+CREATE POLICY "Todo para autenticados inventory" ON public.inventory_movements FOR ALL USING (true) WITH CHECK (true);
+
+-- 8. RECARGAR CACHÉ
 NOTIFY pgrst, 'reload schema';

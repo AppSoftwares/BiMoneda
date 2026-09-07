@@ -133,21 +133,21 @@ export interface Database {
       ledger_entries: {
         Row: {
           id: string
-          operation_id: string
+          operation_id: string | null
           date: string
           debit_account: string
           credit_account: string
           amount_bs: number
-          description: string
+          description: string | null
         }
         Insert: {
           id?: string
-          operation_id: string
-          date: string
+          operation_id?: string | null
+          date?: string
           debit_account: string
           credit_account: string
           amount_bs: number
-          description: string
+          description?: string | null
         }
         Update: {
           id?: string
@@ -277,6 +277,13 @@ export interface Database {
           cert_provider_providence?: string | null
           control_range_from?: string | null
           control_range_to?: string | null
+          full_name?: string | null
+          id_number?: string | null
+          nationality?: string | null
+          marital_status?: string | null
+          occupation?: string | null
+          city?: string | null
+          state?: string | null
         }
         Insert: {
           id?: string
@@ -293,6 +300,13 @@ export interface Database {
           cert_provider_providence?: string | null
           control_range_from?: string | null
           control_range_to?: string | null
+          full_name?: string | null
+          id_number?: string | null
+          nationality?: string | null
+          marital_status?: string | null
+          occupation?: string | null
+          city?: string | null
+          state?: string | null
         }
         Update: {
           id?: string
@@ -309,6 +323,13 @@ export interface Database {
           cert_provider_providence?: string | null
           control_range_from?: string | null
           control_range_to?: string | null
+          full_name?: string | null
+          id_number?: string | null
+          nationality?: string | null
+          marital_status?: string | null
+          occupation?: string | null
+          city?: string | null
+          state?: string | null
         }
       }
       invoices: {

@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
   const { t } = useLanguage();
   const [dbStatus, setDbStatus] = useState<'Checking...' | 'Connected' | 'Error'>('Checking...');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [totals, setTotals] = useState({ usd: 0, bs: 0 });
+  const [totals, setTotals] = useState({ usd: 0, bs: 0, iva_usd: 0, iva_bs: 0 });
   const [counts, setCounts] = useState({ clients: 0, p2p: 0 });
   const [invoices, setInvoices] = useState<any[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(36.00);
@@ -63,13 +63,16 @@ const Dashboard: React.FC = () => {
 
       const { data: filteredInv } = await (supabase as any)
         .from('invoices')
-        .select('total_usd, total_bs')
+        .select('total_usd, total_bs, subtotal_usd, iva_usd, bcv_rate')
         .gte('issue_date', startDate)
         .lte('issue_date', endDate);
 
-      const sumUsd = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_usd || 0), 0) || 0;
-      const sumBs = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.total_bs || 0), 0) || 0;
-      setTotals({ usd: sumUsd, bs: sumBs });
+      const sumUsd = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.subtotal_usd || 0), 0) || 0;
+      const sumIvaUsd = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + (curr.iva_usd || 0), 0) || 0;
+      const sumBs = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + ((curr.subtotal_usd || 0) * (curr.bcv_rate || 1)), 0) || 0;
+      const sumIvaBs = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + ((curr.iva_usd || 0) * (curr.bcv_rate || 1)), 0) || 0;
+
+      setTotals({ usd: sumUsd, bs: sumBs, iva_usd: sumIvaUsd, iva_bs: sumIvaBs });
 
       // Fetch Rate
       const rate = await bcv.getLatestRate();
@@ -144,6 +147,13 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="text-xl font-bold text-primary tracking-tight dark:text-white">${totals.usd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
               <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('total_earned')} ({selectedMonthName})</p>
+
+              <div className="mt-4 pt-3 border-t border-outline-variant/30 dark:border-white/10">
+                <div className="flex justify-between items-center">
+                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">IVA Recaudado:</span>
+                    <span className="text-[10px] font-bold text-secondary">${totals.iva_usd.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
             </div>
 
             <div className="bg-white p-5 rounded-lg border border-outline-variant shadow-level-1 dark:bg-white/5 dark:border-white/10">
@@ -152,6 +162,13 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="text-xl font-bold text-secondary tracking-tight">{totals.bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</div>
               <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">{t('bcv_rate')}: {currentRate.toFixed(2)}</p>
+
+              <div className="mt-4 pt-3 border-t border-outline-variant/30 dark:border-white/10">
+                <div className="flex justify-between items-center">
+                    <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">IVA en Bs:</span>
+                    <span className="text-[10px] font-bold text-primary">{totals.iva_bs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -152,6 +152,36 @@ const AddInvoice: React.FC = () => {
         .eq('id', formData.subscriptionId);
 
       alert('¡Factura emitida exitosamente!');
+
+      // Registrar en Libros Contables
+      try {
+        const entryDate = now.toISOString().split('T')[0];
+
+        const { error: ledgerError1 } = await supabase.from('ledger_entries').insert([{
+            date: entryDate,
+            debit_account: 'Cuentas por Cobrar',
+            credit_account: 'Ingresos por Servicios',
+            amount_bs: formData.amountUsd * rateToUse,
+            description: `Factura #${invoiceNumber} - ${selectedClient.name}`
+          }]);
+
+        if (ledgerError1) throw ledgerError1;
+
+          if (ivaUsd > 0) {
+            const { error: ledgerError2 } = await supabase.from('ledger_entries').insert([{
+                date: entryDate,
+                debit_account: 'Cuentas por Cobrar',
+                credit_account: 'IVA por Pagar',
+                amount_bs: ivaUsd * rateToUse,
+                description: `IVA Factura #${invoiceNumber}`
+              }]);
+            if (ledgerError2) throw ledgerError2;
+          }
+      } catch (e: any) {
+        console.error("Error al contabilizar factura:", e);
+        alert("Atención: La factura se creó pero no se pudo registrar en los libros: " + e.message);
+      }
+
       navigate(`/invoice/${invoice.id}`);
     } catch (err: any) {
       alert('Error: ' + err.message);

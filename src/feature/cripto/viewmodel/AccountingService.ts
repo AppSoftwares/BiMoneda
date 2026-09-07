@@ -1,6 +1,14 @@
 import Big from 'big.js';
 import { supabase } from '../../../data/db/supabase';
 
+// Intentar importar CapacitorHttp para evitar CORS en móviles
+let CapacitorHttp: any = null;
+try {
+    import('@capacitor/core').then(m => {
+        CapacitorHttp = (m as any).CapacitorHttp;
+    });
+} catch (e) {}
+
 export interface CryptoOp {
   type: 'COMPRA' | 'VENTA';
   asset: string;
@@ -34,6 +42,106 @@ export interface CryptoOp {
 }
 
 class AccountingService {
+
+  async syncWithBinance() {
+    const { data: { user } } = await supabase.auth.getUser();
+    const apiKey = user?.user_metadata?.binance_key;
+    const apiSecret = user?.user_metadata?.binance_secret;
+
+    if (!apiKey || !apiSecret) {
+        throw new Error('Configura tu API Key y Secret en el Perfil primero.');
+    }
+
+    const timestamp = Date.now();
+    const params = `timestamp=${timestamp}`;
+    const signature = await this.generateSignature(params, apiSecret);
+    const url = `https://api.binance.com/sapi/v1/p2p/userTradeHistory?${params}&signature=${signature}`;
+
+    let result: any;
+
+    // Si estamos en entorno Capacitor (móvil), usamos CapacitorHttp para saltar CORS
+    if (CapacitorHttp) {
+        const response = await CapacitorHttp.get({
+            url,
+            headers: { 'X-MBX-APIKEY': apiKey }
+        });
+        result = response.data;
+    } else {
+        // En navegador (localhost), esto suele dar error "Failed to fetch" por CORS
+        try {
+            const response = await fetch(url, {
+                headers: { 'X-MBX-APIKEY': apiKey }
+            });
+            result = await response.json();
+        } catch (e) {
+            throw new Error('Error de CORS: Binance no permite peticiones desde navegadores. Esta función solo trabajará en la App Móvil o mediante un Proxy/Edge Function.');
+        }
+    }
+
+    if (result.code && result.code !== 0) throw new Error(result.msg || 'Error de Binance');
+
+    const orders = result.data || [];
+    let importedCount = 0;
+
+    for (const order of orders) {
+        // Solo órdenes completadas
+        if (order.orderStatus !== 'COMPLETED') continue;
+
+        // Verificar si ya existe
+        const { data: exists } = await (supabase as any)
+            .from('crypto_operations')
+            .select('id')
+            .eq('order_number_binance', order.orderNumber)
+            .maybeSingle();
+
+        if (exists) continue;
+
+        // Registrar operación
+        await this.processOperation({
+            type: order.tradeType === 'BUY' ? 'COMPRA' : 'VENTA',
+            asset: order.asset,
+            qty: Number(order.amount),
+            priceBs: Number(order.price),
+            bcvRate: 36.00, // TODO: Obtener tasa histórica si es posible, por ahora default
+            platform: 'Binance P2P',
+            reference: order.orderNumber,
+            feeBs: 0,
+            date: new Date(order.createTime).toISOString(),
+            binanceOrder: order.orderNumber,
+            orderStatus: 'COMPLETADO',
+            qtyNet: Number(order.amount),
+            counterpartyNickname: order.counterpartyNickname,
+            exchangeDatetime: new Date(order.createTime).toISOString()
+        });
+        importedCount++;
+    }
+
+    return importedCount;
+  }
+
+  private async generateSignature(queryString: string, secret: string) {
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret);
+    const messageData = encoder.encode(queryString);
+
+    const cryptoKey = await window.crypto.subtle.importKey(
+        'raw',
+        keyData,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+    );
+
+    const signature = await window.crypto.subtle.sign(
+        'HMAC',
+        cryptoKey,
+        messageData
+    );
+
+    return Array.from(new Uint8Array(signature))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+  }
 
   async processOperation(op: CryptoOp) {
     const totalBs = new Big(op.qty).times(op.priceBs).plus(op.feeBs);
@@ -122,7 +230,11 @@ class AccountingService {
       });
     }
 
-    await (supabase as any).from('ledger_entries').insert(entries);
+    const { error } = await (supabase as any).from('ledger_entries').insert(entries);
+    if (error) {
+        console.error('Error al insertar en ledger_entries:', error);
+        throw error;
+    }
   }
 
   private async updateInventory(op: any) {

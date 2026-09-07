@@ -14,18 +14,26 @@ const Books: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        if (activeTab === 'diary') {
-            const { data } = await supabase.from('ledger_entries').select('*').order('date', { ascending: false });
-            setData(data || []);
-        } else if (activeTab === 'inventory') {
-            const { data } = await supabase.from('inventory_movements').select('*, crypto_operations(*)').order('id', { ascending: false });
-            setData(data || []);
-        } else if (activeTab === 'ledger') {
-            // Standard ledger view
-            const { data } = await supabase.from('ledger_entries').select('*').order('date', { ascending: true });
-            setData(data || []);
+        try {
+            if (activeTab === 'diary') {
+                const { data, error } = await supabase.from('ledger_entries').select('*').order('date', { ascending: false });
+                if (error) throw error;
+                setData(data || []);
+            } else if (activeTab === 'inventory') {
+                const { data, error } = await supabase.from('inventory_movements').select('*, crypto_operations(*)').order('id', { ascending: false });
+                if (error) throw error;
+                setData(data || []);
+            } else if (activeTab === 'ledger') {
+                const { data, error } = await supabase.from('ledger_entries').select('*').order('date', { ascending: true });
+                if (error) throw error;
+                setData(data || []);
+            }
+        } catch (err: any) {
+            console.error("Error fetching books data:", err.message);
+            alert("Error al cargar los libros: " + err.message);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
     fetchData();
   }, [activeTab]);
