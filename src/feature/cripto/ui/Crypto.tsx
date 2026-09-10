@@ -434,7 +434,7 @@ const Crypto: React.FC = () => {
       // sola hoja — a diferencia del reporte anterior, que no tenía
       // ninguna protección contra desbordamiento.
       didDrawPage: () => {
-        if (doc.internal.getNumberOfPages() > 1) drawPageFrame();
+        if (doc.getNumberOfPages() > 1) drawPageFrame();
       },
       head: [['Fecha', 'Tipo', 'Cant.', 'P. Unit. Bs', 'Total Bs', 'Plataforma', 'N. Orden', 'Estado', 'Contraparte']],
       body: filtered.map(op => [
