@@ -289,7 +289,7 @@ const Profile: React.FC = () => {
 
     // IV. Operativa
     drawSection("IV. Descripción de la Operativa");
-    const opText = "La operation consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
+    const opText = "La operación consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
     const splitOp = doc.splitTextToSize(opText, maxWidth);
     doc.text(splitOp, margin, y);
     y += splitOp.length * 4.1 + 1.5;
@@ -382,7 +382,11 @@ const Profile: React.FC = () => {
     doc.setFont("times", "italic");
     const footerText = "Este documento es generado por BiMoneda como herramienta de apoyo contable/administrativo, con base en los datos registrados por el propio usuario. BiMoneda no procesa pagos, no custodia fondos ni valida la exactitud de la información aquí contenida. El usuario que presenta este documento ante terceros es el único responsable de su veracidad. No constituye asesoría legal, contable ni tributaria; se recomienda validarlo con un contador público y/o abogado antes de presentarlo ante terceros.";
     const splitFooter = doc.splitTextToSize(footerText, maxWidth);
-    doc.text(splitFooter, pageWidth / 2, y, { align: 'center' });
+    // Dibujamos línea por línea para evitar el bug de pérdida de texto
+    // de jsPDF al usar align:'center' con arrays.
+    splitFooter.forEach((line: string, i: number) => {
+      doc.text(line, pageWidth / 2, y + i * 3, { align: 'center' });
+    });
 
     doc.save(`CARTA_DECLARACION_${refDoc}.pdf`);
   };

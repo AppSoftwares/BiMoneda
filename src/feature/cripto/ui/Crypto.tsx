@@ -54,8 +54,13 @@ const Crypto: React.FC = () => {
   const handleSyncBinance = async () => {
     setLoading(true);
     try {
-        const count = await accounting.syncWithBinance();
-        alert(`Sincronización completada. Se importaron ${count} nuevas operaciones.`);
+        // Antes se traía TODO el historial cada vez (lento y desperdicia
+        // requests contra la API de Binance). Ahora solo se consulta el
+        // mes que el usuario tiene seleccionado en el filtro; los meses
+        // anteriores ya sincronizados quedan guardados en la base de
+        // datos y no se vuelven a pedir a Binance.
+        const count = await accounting.syncWithBinance(filterMonth, filterYear);
+        alert(`Sincronización completada (${filterMonth}/${filterYear}). Se importaron ${count} nuevas operaciones.`);
         fetchOps();
     } catch (err: any) {
         alert('Error de Sincronización: ' + err.message);
@@ -146,7 +151,7 @@ const Crypto: React.FC = () => {
       doc.setDrawColor(colorTableBorder[0], colorTableBorder[1], colorTableBorder[2]);
       doc.setLineWidth(0.2);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 5;
+      y += 4;
     };
 
     // I. Marco Legal
@@ -157,7 +162,7 @@ const Crypto: React.FC = () => {
     const introText = "Se deja constancia que la actividad comercial de intercambio de criptoactivos aquí descrita se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, en cumplimiento de los principios de transparencia y licitud de fondos, conforme al Decreto Constituyente sobre el Sistema Integral de Criptoactivos y la Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).";
     const splitIntro = doc.splitTextToSize(introText, maxWidth);
     doc.text(splitIntro, margin, y);
-    y += splitIntro.length * 3.8 + 3;
+    y += splitIntro.length * 3.6 + 2;
 
     // II. Detalle de la Operación
     drawSection("II. Detalle de la Operación");
@@ -193,13 +198,13 @@ const Crypto: React.FC = () => {
     steps.forEach(step => {
       const splitStep = doc.splitTextToSize(step, maxWidth - 5);
       doc.text(splitStep, margin + 5, y);
-      y += splitStep.length * 3.8;
+      y += splitStep.length * 3.6;
     });
     y += 1.5;
     const platText = "Las plataformas utilizadas operan bajo estándares de seguridad y trazabilidad, encontrándose en algunos casos registradas ante la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP), conforme al Sistema Integral de Criptoactivos (SIC).";
     const splitPlat = doc.splitTextToSize(platText, maxWidth);
     doc.text(splitPlat, margin, y);
-    y += splitPlat.length * 3.8 + 3;
+    y += splitPlat.length * 3.6 + 2;
 
     // IV. Destino de Fondos
     drawSection("IV. Destino de los Fondos y Obligaciones Fiscales");
@@ -215,7 +220,7 @@ const Crypto: React.FC = () => {
         // zona reservada para la Certificación y el pie de página, se abre
         // una página nueva en vez de dejar que el texto se corte o se monte
         // sobre el pie de página.
-        const neededHeight = splitP.length * 3.8 + 2;
+        const neededHeight = splitP.length * 3.6 + 1.5;
         if (y + neededHeight > pageHeight - 40) {
             doc.addPage();
             doc.setFillColor(253, 252, 248);
@@ -297,7 +302,13 @@ const Crypto: React.FC = () => {
     doc.setFont("times", "italic");
     const footerText = t('legal_report_disclaimer');
     const splitFooter = doc.splitTextToSize(footerText, maxWidth);
-    doc.text(splitFooter, margin, y, { align: 'center' });
+    // jsPDF pierde fragmentos de texto cuando se le pasa un ARRAY de
+    // líneas junto con align:'center' (el mismo tipo de bug que ya vimos
+    // con align:'justify'). Cambiar la X a pageWidth/2 no alcanza — hay
+    // que dibujar cada línea por separado para que sea confiable.
+    splitFooter.forEach((line: string, i: number) => {
+      doc.text(line, pageWidth / 2, y + i * 3, { align: 'center' });
+    });
 
     doc.save(`Informe_P2P_${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}.pdf`);
   };
@@ -480,7 +491,10 @@ const Crypto: React.FC = () => {
     doc.setTextColor(102, 102, 102);
     doc.setFont("times", "italic");
     const footerText = t('legal_report_disclaimer');
-    doc.text(doc.splitTextToSize(footerText, pageWidth - margin * 2), margin, y, { align: 'center' });
+    const splitFooterHist = doc.splitTextToSize(footerText, pageWidth - margin * 2);
+    splitFooterHist.forEach((line: string, i: number) => {
+      doc.text(line, pageWidth / 2, y + i * 3, { align: 'center' });
+    });
 
     doc.save(`Historial_P2P_${exportMonth}_${exportYear}.pdf`);
   };
