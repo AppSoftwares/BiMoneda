@@ -4,6 +4,7 @@ import { supabase } from '../../../data/db/supabase';
 import { useLanguage } from '../../../core/context/LanguageContext';
 import { bcv } from '../../../data/repository/BcvService';
 import BottomNav from '../../../core/nav/BottomNav';
+import { ACCOUNTS, LEDGER_SOURCE } from '../../cripto/viewmodel/AccountingAccounts';
 
 const AddInvoice: React.FC = () => {
   const navigate = useNavigate();
@@ -114,6 +115,11 @@ const AddInvoice: React.FC = () => {
       const invoiceNumber = Math.floor(100000 + Math.random() * 900000).toString();
       const now = new Date();
 
+      // El estado de la factura debe reflejar la condición de pago real:
+      // una venta a CRÉDITO no está cobrada todavía. Marcarla "PAID" de una
+      // vez rompe el saldo de Cuentas por Cobrar en los libros.
+      const invoiceStatus = formData.paymentCondition === 'CONTADO' ? 'PAID' : 'PENDING';
+
       const { data: invoice, error } = await (supabase as any).from('invoices').insert([{
         client_id: formData.clientId,
         subscription_id: formData.subscriptionId,
@@ -122,7 +128,7 @@ const AddInvoice: React.FC = () => {
         issue_date: now.toISOString().split('T')[0],
         issue_time: now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         assignment_date: now.toISOString().split('T')[0],
-        status: 'PAID',
+        status: invoiceStatus,
         subtotal_usd: formData.amountUsd,
         taxable_base_usd: formData.amountUsd,
         iva_percent: ivaPercent,
@@ -156,27 +162,65 @@ const AddInvoice: React.FC = () => {
       // Registrar en Libros Contables
       try {
         const entryDate = now.toISOString().split('T')[0];
+        const entries: any[] = [];
 
-        const { error: ledgerError1 } = await (supabase as any).from('ledger_entries').insert([{
+        // 1) Reconocimiento de ingresos: Debe Cuentas por Cobrar / Haber Ingresos
+        entries.push({
+          invoice_id: invoice.id,
+          source: LEDGER_SOURCE.INVOICE,
+          date: entryDate,
+          debit_account: ACCOUNTS.CUENTAS_POR_COBRAR,
+          credit_account: ACCOUNTS.INGRESOS_POR_SERVICIOS,
+          amount_bs: formData.amountUsd * rateToUse,
+          description: `Factura #${invoiceNumber} - ${selectedClient.name}`
+        });
+
+        // 2) IVA recaudado (pasivo por pagar al SENIAT)
+        if (ivaUsd > 0) {
+          entries.push({
+            invoice_id: invoice.id,
+            source: LEDGER_SOURCE.INVOICE,
             date: entryDate,
-            debit_account: 'Cuentas por Cobrar',
-            credit_account: 'Ingresos por Servicios',
-            amount_bs: formData.amountUsd * rateToUse,
-            description: `Factura #${invoiceNumber} - ${selectedClient.name}`
-          }]);
+            debit_account: ACCOUNTS.CUENTAS_POR_COBRAR,
+            credit_account: ACCOUNTS.IVA_POR_PAGAR,
+            amount_bs: ivaUsd * rateToUse,
+            description: `IVA Factura #${invoiceNumber}`
+          });
+        }
 
-        if (ledgerError1) throw ledgerError1;
+        // 3) IGTF recaudado (pasivo por pagar) — antes NO se registraba en
+        //    absoluto, aunque sí se le cobraba al cliente en la factura.
+        if (igtfUsd > 0) {
+          entries.push({
+            invoice_id: invoice.id,
+            source: LEDGER_SOURCE.INVOICE,
+            date: entryDate,
+            debit_account: ACCOUNTS.CUENTAS_POR_COBRAR,
+            credit_account: ACCOUNTS.IGTF_POR_PAGAR,
+            amount_bs: igtfUsd * rateToUse,
+            description: `IGTF Factura #${invoiceNumber}`
+          });
+        }
 
-          if (ivaUsd > 0) {
-            const { error: ledgerError2 } = await (supabase as any).from('ledger_entries').insert([{
-                date: entryDate,
-                debit_account: 'Cuentas por Cobrar',
-                credit_account: 'IVA por Pagar',
-                amount_bs: ivaUsd * rateToUse,
-                description: `IVA Factura #${invoiceNumber}`
-              }]);
-            if (ledgerError2) throw ledgerError2;
-          }
+        // 4) Si la venta es de CONTADO, el dinero entra de inmediato: se
+        //    registra el cobro (Debe Banco / Haber Cuentas por Cobrar) para
+        //    que el saldo por cobrar quede en cero, tal como dice el estado
+        //    "PAID" de la factura. Si es a CRÉDITO, este asiento se hará
+        //    después, cuando el cliente realmente pague.
+        if (invoiceStatus === 'PAID') {
+          entries.push({
+            invoice_id: invoice.id,
+            source: LEDGER_SOURCE.INVOICE,
+            date: entryDate,
+            debit_account: ACCOUNTS.BANCO_EFECTIVO_BS,
+            credit_account: ACCOUNTS.CUENTAS_POR_COBRAR,
+            amount_bs: totalUsd * rateToUse,
+            description: `Cobro Factura #${invoiceNumber} (${formData.paymentMethod})`
+          });
+        }
+
+        const { error: ledgerError } = await (supabase as any).from('ledger_entries').insert(entries);
+        if (ledgerError) throw ledgerError;
       } catch (e: any) {
         console.error("Error al contabilizar factura:", e);
         alert("Atención: La factura se creó pero no se pudo registrar en los libros: " + e.message);

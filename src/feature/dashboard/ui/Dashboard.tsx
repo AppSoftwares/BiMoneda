@@ -11,6 +11,7 @@ const Dashboard: React.FC = () => {
   const [dbStatus, setDbStatus] = useState<'Checking...' | 'Connected' | 'Error'>('Checking...');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [totals, setTotals] = useState({ usd: 0, bs: 0, iva_usd: 0, iva_bs: 0 });
+  const [cryptoProfitBs, setCryptoProfitBs] = useState(0);
   const [counts, setCounts] = useState({ clients: 0, p2p: 0 });
   const [invoices, setInvoices] = useState<any[]>([]);
   const [currentRate, setCurrentRate] = useState<number>(36.00);
@@ -48,11 +49,20 @@ const Dashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true });
 
       // Fetch P2P Count Today
-      const today = new Date().toISOString().split('T')[0];
+      // OJO: `date` en crypto_operations se guarda como timestamp completo
+      // (ISOString), no solo como "YYYY-MM-DD". Comparar con .eq() contra una
+      // fecha sin hora nunca coincidía y el contador siempre mostraba 0.
+      // Se usa un rango [inicio de hoy, inicio de mañana) en su lugar.
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const startOfTomorrow = new Date(startOfToday);
+      startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
       const { count: p2pCount } = await supabase
         .from('crypto_operations')
         .select('*', { count: 'exact', head: true })
-        .eq('date', today);
+        .gte('date', startOfToday.toISOString())
+        .lt('date', startOfTomorrow.toISOString());
 
       setCounts({ clients: clientCount || 0, p2p: p2pCount || 0 });
 
@@ -73,6 +83,19 @@ const Dashboard: React.FC = () => {
       const sumIvaBs = (filteredInv as any[])?.reduce((acc: number, curr: any) => acc + ((curr.iva_usd || 0) * (curr.bcv_rate || 1)), 0) || 0;
 
       setTotals({ usd: sumUsd, bs: sumBs, iva_usd: sumIvaUsd, iva_bs: sumIvaBs });
+
+      // Ganancia/pérdida neta realizada del arbitraje P2P en el mes filtrado.
+      // Antes el Dashboard solo mostraba ingresos por facturas de servicios;
+      // la mitad "cripto" del negocio no aparecía en ningún resumen.
+      const { data: invMovements } = await (supabase as any)
+        .from('inventory_movements')
+        .select('realized_profit_bs, created_at')
+        .gte('created_at', `${startDate}T00:00:00`)
+        .lte('created_at', `${endDate}T23:59:59`);
+
+      const netCryptoProfit = (invMovements as any[] || [])
+        .reduce((acc: number, m: any) => acc + (m.realized_profit_bs || 0), 0);
+      setCryptoProfitBs(netCryptoProfit);
 
       // Fetch Rate
       const rate = await bcv.getLatestRate();
@@ -170,6 +193,16 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-xs font-bold text-primary uppercase tracking-[0.15em] ml-1 dark:text-secondary">Ganancia Neta P2P ({selectedMonthName})</h2>
+          <div className={`p-5 rounded-lg border shadow-level-1 ${cryptoProfitBs >= 0 ? 'bg-white dark:bg-white/5 border-outline-variant dark:border-white/10' : 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30'}`}>
+            <div className={`text-xl font-bold tracking-tight ${cryptoProfitBs >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+              Bs. {cryptoProfitBs.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+            </div>
+            <p className="text-[10px] font-medium text-on-surface-variant mt-1 uppercase tracking-wider dark:text-white/40">Ganancia (o pérdida) realizada en arbitraje de criptoactivos</p>
           </div>
         </section>
 
