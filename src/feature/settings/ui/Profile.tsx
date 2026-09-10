@@ -6,7 +6,7 @@ import { useTheme } from '../../../core/context/ThemeContext';
 import jsPDF from 'jspdf';
 import BottomNav from '../../../core/nav/BottomNav';
 
-type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company' | 'binance' | 'privacy';
+type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company' | 'binance';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -226,22 +226,22 @@ const Profile: React.FC = () => {
       doc.setFontSize(10);
       doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
       doc.text(title, margin, y);
-      y += 1.5;
+      y += 1.3;
       doc.setDrawColor(colorGold[0], colorGold[1], colorGold[2]);
       doc.setLineWidth(0.2);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 4.5;
+      y += 4;
     };
 
     // I. Fundamento Legal
     drawSection("I. Fundamento Legal");
     doc.setFont("times", "normal");
-    doc.setFontSize(9.7);
+    doc.setFontSize(9.3);
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     const introText = "La presente declaración se emite de conformidad con el Decreto Constituyente sobre el Sistema Integral de Criptoactivos, publicado en Gaceta Oficial N.° 41.575 del 30/01/2019, y con el artículo 27 de la Resolución N.° 008 del 31/01/2019 (Gaceta Oficial N.° 41.581, del 07/02/2019), \"Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo\".";
     const splitIntro = doc.splitTextToSize(introText, maxWidth);
     doc.text(splitIntro, margin, y);
-    y += splitIntro.length * 4.1 + 3;
+    y += splitIntro.length * 4.0 + 2.5;
 
     // II. Identificación
     drawSection("II. Identificación del Declarante");
@@ -274,25 +274,25 @@ const Profile: React.FC = () => {
         doc.setTextColor(colorText[0], colorText[1], colorText[2]);
         doc.text(idData[i+1].value, margin + 125, idY);
       }
-      idY += 4.6;
+      idY += 4.4;
     }
-    y = idY + 4;
+    y = idY + 3.5;
 
     // III. Declaración Jurada
     drawSection("III. Declaración Jurada");
-    doc.setFontSize(9.7);
+    doc.setFontSize(9.3);
     const occupation = editCompany?.occupation || 'comerciante independiente';
     const swornText = `Declaro bajo mi responsabilidad que los capitales, valores o títulos producto de mi actividad de arbitraje de activos digitales y operaciones P2P proceden de actividad lícita, verificable ante los organismos competentes, sin relación alguna con hechos ilícitos contemplados en la legislación venezolana. Los fondos utilizados provienen de ingresos personales lícitos y verificables, debido a que soy ${occupation} y, aunado a esto, también invierto mi dinero en compra-venta de activos digitales, como la actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer), ejecutada a través de plataformas de intercambio de criptoactivos autorizadas.`;
     const splitSworn = doc.splitTextToSize(swornText, maxWidth);
     doc.text(splitSworn, margin, y);
-    y += splitSworn.length * 4.1 + 3;
+    y += splitSworn.length * 4.0 + 2.5;
 
     // IV. Operativa
     drawSection("IV. Descripción de la Operativa");
     const opText = "La operación consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
     const splitOp = doc.splitTextToSize(opText, maxWidth);
     doc.text(splitOp, margin, y);
-    y += splitOp.length * 4.1 + 1.5;
+    y += splitOp.length * 4.0 + 1.2;
 
     const listItems = [
       "• Actividad realizada estrictamente a título personal.",
@@ -302,9 +302,9 @@ const Profile: React.FC = () => {
     listItems.forEach(item => {
       const splitItem = doc.splitTextToSize(item, maxWidth - 5);
       doc.text(splitItem, margin + 5, y);
-      y += splitItem.length * 4.1;
+      y += splitItem.length * 4.0;
     });
-    y += 3;
+    y += 2.5;
 
     // V. Trazabilidad
     drawSection("V. Verificación y Trazabilidad");
@@ -316,14 +316,14 @@ const Profile: React.FC = () => {
     traceItems.forEach(item => {
       const splitItem = doc.splitTextToSize(item, maxWidth - 5);
       doc.text(splitItem, margin + 5, y);
-      y += splitItem.length * 4.1;
+      y += splitItem.length * 4.0;
     });
-    y += 6;
+    y += 5;
 
     const closingText = "En virtud de lo expuesto, declaro que los fondos movilizados en mis cuentas tienen origen lícito y trazable, derivado de actividad comercial legítima de arbitraje de activos digitales por cuenta propia, guardando perfecta correlación con el ciclo de compra, custodia temporal, venta y toma de ganancias de los criptoactivos declarados.";
     const splitClosing = doc.splitTextToSize(closingText, maxWidth);
     doc.text(splitClosing, margin, y);
-    y += splitClosing.length * 4.1 + 10;
+    y += splitClosing.length * 4.0 + 8;
 
     // Signature Block
     // Comprobar espacio ANTES de dibujar la firma: si el contenido previo
@@ -382,10 +382,8 @@ const Profile: React.FC = () => {
     doc.setFont("times", "italic");
     const footerText = "Este documento es generado por BiMoneda como herramienta de apoyo contable/administrativo, con base en los datos registrados por el propio usuario. BiMoneda no procesa pagos, no custodia fondos ni valida la exactitud de la información aquí contenida. El usuario que presenta este documento ante terceros es el único responsable de su veracidad. No constituye asesoría legal, contable ni tributaria; se recomienda validarlo con un contador público y/o abogado antes de presentarlo ante terceros.";
     const splitFooter = doc.splitTextToSize(footerText, maxWidth);
-    // Dibujamos línea por línea para evitar el bug de pérdida de texto
-    // de jsPDF al usar align:'center' con arrays.
     splitFooter.forEach((line: string, i: number) => {
-      doc.text(line, pageWidth / 2, y + i * 3, { align: 'center' });
+      doc.text(line, pageWidth / 2, y + i * 3.1, { align: 'center' });
     });
 
     doc.save(`CARTA_DECLARACION_${refDoc}.pdf`);
@@ -700,7 +698,7 @@ const Profile: React.FC = () => {
 
              <h3 className="text-[10px] font-black text-secondary uppercase tracking-widest ml-4">Legal</h3>
              <div className="bg-white dark:bg-white/5 rounded-3xl shadow-level-1 border border-outline-variant dark:border-white/10 overflow-hidden">
-                <MenuItem label="Política de Privacidad" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => setActiveSection('privacy')} />
+                <MenuItem label="Política de Privacidad" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => alert('Política de Privacidad')} />
                 <MenuItem label="Términos y Condiciones" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>} onClick={() => setActiveSection('legal')} />
              </div>
           </main>
@@ -710,7 +708,7 @@ const Profile: React.FC = () => {
       {activeSection === 'notifications' && (
         <>
           <SubHeader title={t('notifications')} />
-          <main className="p-6 space-y-8 max-w-md mx-auto text-center">
+          <main className="p-6 space-y-8 max-md mx-auto text-center">
              <p className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase px-4 leading-relaxed">Gestiona cómo quieres recibir las alertas de tu comunidad.</p>
              <div className="bg-white dark:bg-white/5 rounded-3xl shadow-level-1 border border-outline-variant dark:border-white/10 p-8 flex items-center justify-between">
                 <div className="flex items-center gap-4 text-left">
@@ -811,287 +809,16 @@ const Profile: React.FC = () => {
           <SubHeader title={t('terms_cond')} />
           <main className="p-6 space-y-6 max-w-md mx-auto">
              <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-outline-variant dark:border-white/10 shadow-sm space-y-6">
-                <h3 className="text-sm font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Términos y Condiciones de Servicio</h3>
-                <div className="text-[11px] text-on-surface-variant dark:text-white/60 leading-relaxed space-y-6 text-justify">
-                    <div>
-                        <p className="font-bold">Última actualización y entrada en vigor: 09 de septiembre de 2026</p>
-                    </div>
-
-                    <p>Los presentes Términos y Condiciones ("Términos") regulan el acceso y uso de la plataforma web y la aplicación móvil de App BiMoneda (en adelante, "la Plataforma" o "el Servicio"), accesible a través del portal https://bimoneda.vercel.app/login y sus aplicaciones móviles oficiales para Android e iOS.</p>
-
-                    <p>Al crear una cuenta, ingresar o utilizar la Plataforma, el usuario (bien sea persona natural, persona jurídica o Empresa Administradora) manifiesta su conformidad absoluta con las disposiciones aquí establecidas. Si no está de acuerdo con estos Términos, deberá abstenerse de utilizar el Servicio.</p>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">1. Descripción del Servicio y Alcance Operativo</h4>
-                        <p>App BiMoneda es una plataforma tecnológica bajo la modalidad SaaS (Software como Servicio) diseñada para optimizar la gestión operativa, financiera, de apoyo a la facturación y registro de operaciones P2P en la República Bolivariana de Venezuela.</p>
-                        <p className="font-bold pt-2">Funcionalidades Principales</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li><span className="font-bold">Módulo Financiero y Recaudación:</span> Carga y registro de facturas, elaboración de libros contables y conciliación de pagos.</li>
-                            <li><span className="font-bold">Formatos y Documentación:</span> Organización de reportes de operaciones P2P, declaraciones de origen y movimiento lícito de fondos, y generación de recibos de pago con conversión dual USD/VES a la tasa oficial del Banco Central de Venezuela (BCV).</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">2. Deslinde de Responsabilidad Financiera, Contable y Legal</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Naturaleza del Software:</span> App BiMoneda es una herramienta técnica de software de apoyo administrativo y de facturación. No procesa pagos, no custodia fondos de terceros ni tiene acceso operativo a cuentas bancarias o billeteras virtuales/cripto de los usuarios.</li>
-                            <li><span className="font-bold">Validación de Operaciones:</span> La validación de cada pago, la verificación de autenticidad de los comprobantes (transferencias, pago móvil, depósitos o transferencias P2P) y la emisión final del recibo o factura correspondiente son responsabilidad exclusiva del usuario o de la Empresa Administradora.</li>
-                            <li><span className="font-bold">Documentos e Informes Generados:</span> Los documentos y reportes generados dentro de la Plataforma (incluyendo el Informe de Operación P2P y la Carta de Declaración de Origen y Movimientos Lícitos de Fondos) se elaboran automáticamente con base en la información registrada por el propio usuario. App BiMoneda actúa únicamente como herramienta de formato y organización de datos.</li>
-                            <li><span className="font-bold">Ausencia de Asesoría Profesional:</span> Los reportes y plantillas emitidos por la Plataforma no constituyen asesoría legal, contable ni tributaria formal. El usuario que firma o presenta dichos documentos ante terceros, bancos, entes reguladores u otras autoridades es el único responsable de la veracidad de su contenido. Se recomienda su validación previa por un Contador Público o Abogado colegiado.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">3. Registro de Cuentas y Responsabilidad de Credenciales</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Alta en el Sistema:</span> La activación de una cuenta o espacio en el sistema debe ser ejecutada directamente por el propio usuario, un administrador autorizado o por el equipo técnico de App BiMoneda.</li>
-                            <li><span className="font-bold">Uso Individual e Intransferible:</span> Cada cuenta de usuario se vincula a una persona natural o persona jurídica. Queda estrictamente prohibido compartir credenciales de acceso entre múltiples individuos no autorizados.</li>
-                            <li><span className="font-bold">Custodia de Credenciales:</span> El usuario es el único responsable de mantener la confidencialidad de su contraseña y de todas las acciones realizadas desde su cuenta. Debe notificar de inmediato a App BiMoneda ante cualquier sospecha de brecha de seguridad o acceso no autorizado.</li>
-                            <li><span className="font-bold">Veracidad de la Información:</span> El usuario garantiza que los datos suministrados son exactos, veraces y actualizados. Nos reservamos el derecho de suspender o revocar cuentas que registren información falsa o incurran en suplantación de identidad.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">4. Suscripción, Tarifas y Formas de Pago</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Planes de Suscripción:</span> El costo del Servicio se calcula bajo una modalidad de suscripción periódica según el plan contratado.</li>
-                            <li><span className="font-bold">Moneda de Referencia y Pago:</span> Las tarifas de los planes están expresadas en dólares estadounidenses (USD) como unidad de cuenta. Las facturas y pagos procesados dentro del territorio venezolano se liquidarán en Bolívares (VES) calculados a la tasa de cambio oficial publicada por el Banco Central de Venezuela (BCV) correspondiente a la fecha de la transacción, de acuerdo con el marco legal cambiario vigente.</li>
-                            <li><span className="font-bold">Período de Prueba (Trial):</span> Se podrá otorgar un período de prueba gratuito de hasta treinta (30) días continuos. Vencido este plazo, se requerirá la selección de un plan activo para mantener el acceso al sistema.</li>
-                            <li><span className="font-bold">Condiciones de Pago y Mora:</span> La facturación se realiza de manera anticipada. El retraso en el pago del plan por parte del usuario autoriza a App BiMoneda a suspender temporalmente el acceso a los paneles administrativos del sistema, previo aviso.</li>
-                            <li><span className="font-bold">Ajuste de Tarifas:</span> Nos reservamos el derecho de modificar las tarifas del Servicio mediante notificación enviada con al menos treinta (30) días de anticipación.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">5. Uso Aceptable de la Plataforma</h4>
-                        <p>El usuario se obliga a utilizar la Plataforma de manera diligente, correcta y lícita. Queda expresamente prohibido:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Utilizar el Servicio para fines distintos a la gestión operativa, financiera, de apoyo a la facturación y registro de operaciones P2P contemplados en estos Términos.</li>
-                            <li>Introducir o difundir virus informáticos, malware o códigos maliciosos que atenten contra la seguridad o estabilidad de la infraestructura.</li>
-                            <li>Intentar realizar ingeniería inversa, descompilar o extraer el código fuente del portal web o de la aplicación móvil.</li>
-                            <li>Acceder sin autorización a datos, paneles de control o bases de datos de otros usuarios alojados en la Plataforma.</li>
-                            <li>Cargar contenido injurioso, difamatorio, ilegal o que vulnere la privacidad, el honor o la imagen de terceros.</li>
-                            <li>Efectuar ataques de denegación de servicio (DoS/DDoS) o peticiones masivas automatizadas que comprometan el rendimiento de los servidores.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">6. Propiedad de los Datos y Exportación</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Titularidad de la Información:</span> Toda la información cargada en la Plataforma (padrón de clientes/usuarios, soportes contables, registros de pago, comprobantes, actas e historial P2P) es propiedad exclusiva de sus respectivos usuarios. App BiMoneda no asume titularidad sobre dichos datos.</li>
-                            <li><span className="font-bold">Rol de la Plataforma:</span> App BiMoneda actúa en calidad de Encargado del Tratamiento de los datos, procesándolos únicamente para garantizar la prestación efectiva del Servicio.</li>
-                            <li><span className="font-bold">Exportación y Retención Post-Cancelación:</span> En caso de terminación del servicio, el usuario dispondrá de un plazo de treinta (30) días continuos para exportar una copia de sus registros en formatos estándar (CSV/Excel). Transcurridos sesenta (60) días continuos desde la cancelación, los datos activos serán depurados de los servidores de producción.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">7. Propiedad Intelectual</h4>
-                        <p>La Plataforma App BiMoneda, incluyendo su código fuente, arquitectura de software, bases de datos, diseños de interfaz, logotipos, marcas y contenidos originales, son propiedad intelectual exclusiva de App BiMoneda.</p>
-                        <p>La contratación del Servicio otorga al usuario únicamente una licencia de uso limitada, no exclusiva, revocable e intransferible durante la vigencia de la suscripción. Queda prohibida la reproducción, distribución o modificación no autorizada de cualquier elemento protegido por la legislación de propiedad industrial y derechos de autor ante el Servicio Autónomo de la Propiedad Intelectual (SAPI) y los tratados internacionales aplicables.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">8. Disponibilidad del Servicio (SLA) y Mantenimiento</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Nivel de Servicio:</span> App BiMoneda realiza esfuerzos comerciales y técnicos razonables para mantener una disponibilidad operativa de la plataforma del 99.5% mensual.</li>
-                            <li><span className="font-bold">Mantenimiento Programado:</span> Se podrán realizar labores de mantenimiento preventivo o actualizaciones que requieran la interrupción temporal del servicio, notificando a los usuarios con al menos veinticuatro (24) horas de antelación.</li>
-                            <li><span className="font-bold">Exclusiones de Garantía:</span> App BiMoneda no se hace responsable por caídas o fallas de acceso derivadas de interrupciones en los servicios de Internet (ISP), fallas en el suministro eléctrico nacional o eventos fortuitos de fuerza mayor.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">9. Limitación de Responsabilidad</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Decisiones Internas:</span> App BiMoneda no responde por acuerdos, resoluciones, declaraciones tributarias, sanciones, multas o cobros adoptados por los usuarios o administradores basándose en los informes emitidos por el sistema.</li>
-                            <li><span className="font-bold">Uso de Datos por Terceros:</span> La exactitud de las cifras contables, alícuotas, montos convertidos o registros de pago depende íntegramente de la Veracidad de los datos ingresados por el propio usuario.</li>
-                            <li><span className="font-bold">Límite Indemnizable:</span> En caso de comprobarse judicialmente responsabilidad directa por negligencia grave atribuible a la Plataforma, la responsabilidad total acumulada no excederá el monto equivalente pagado por el cliente contratante en los últimos tres (3) meses de servicio.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">10. Marco Legal, Normativa de Criptoactivos y Mensajes de Datos</h4>
-                        <p>La Plataforma opera conforme al ordenamiento jurídico de la República Bolivariana de Venezuela, sujetándose especialmente a:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li><span className="font-bold">Mensajes de Datos y Firmas Electrónicas:</span> Las notificaciones y registros generados en la Plataforma se amparan bajo la Ley sobre Mensajes de Datos y Firmas Electrónicas, contando con validez y eficacia probatoria.</li>
-                            <li><span className="font-bold">Regulación de Criptoactivos y Prevención de Legitimación de Capitales:</span> La conservación de registros P2P y las funciones de la Plataforma atienden a lo establecido en el Decreto Constituyente sobre el Sistema Integral de Criptoactivos (Gaceta Oficial N° 41.575 del 30 de enero de 2019) y la Resolución N° 008 (Gaceta Oficial N° 41.581 del 7 de febrero de 2019) referente a las Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo (LOCDOFT y RUSO).</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">11. Suspensión y Cancelación</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Por el Usuario:</span> El usuario podrá rescindir el servicio en cualquier momento enviando una notificación previa de treinta (30) días continuos a través del canal de atención formal.</li>
-                            <li><span className="font-bold">Por App BiMoneda:</span> Podremos suspender o rescindir de forma inmediata el acceso a la cuenta si el usuario incurre en un incumplimiento grave de estos Términos, utiliza la herramienta para actividades ilícitas o mantiene mora recurrente en sus pagos de suscripción.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">12. Modificaciones a los Términos</h4>
-                        <p>App BiMoneda se reserva el derecho de modificar los presentes Términos para adaptarlos a mejoras operativas del software o a actualizaciones normativas y legales en materia cambiaria o de criptoactivos. Se notificará a los usuarios sobre cambios relevantes con un plazo no menor a treinta (30) días continuos antes de su entrada en vigor. El uso continuado del Servicio tras dicha fecha constituirá la aceptación expresa de las modificaciones.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">13. Ley Aplicable y Jurisdicción</h4>
-                        <p>Los presentes Términos y Condiciones se rigen e interpreta plenamente de conformidad con las leyes vigentes de la República Bolivariana de Venezuela.</p>
-                        <p>Cualquier controversia, reclamo o discrepancia derivada de la interpretación o ejecución del presente documento que no pueda ser resuelta de mutuo acuerdo entre las partes, será sometida a la jurisdicción de los tribunales competentes de la República Bolivariana de Venezuela.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">Contacto y Atención al Cliente</h4>
-                        <p>Para consultas administrativas, soporte técnico o notificaciones legales relacionadas con estos Términos:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li><span className="font-bold">Correo Electrónico:</span> desarrollodeappcondominio@gmail.com</li>
-                            <li><span className="font-bold">Portal Web Oficial:</span> https://bimoneda.vercel.app/dashboard</li>
-                            <li><span className="font-bold">Ubicación:</span> República Bolivariana de Venezuela</li>
-                        </ul>
-                        <p className="pt-4 font-bold text-center">© 2026 App BiMoneda. Todos los derechos reservados.</p>
-                    </div>
+                <h3 className="text-sm font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Términos de Uso</h3>
+                <div className="text-[11px] text-on-surface-variant dark:text-white/60 leading-relaxed space-y-4 text-justify">
+                    <p>Al utilizar BiMoneda, usted acepta que es el único responsable de la exactitud de los datos registrados y del cumplimiento de las obligaciones tributarias en su jurisdicción.</p>
+                    <p>BiMoneda es una herramienta de software de apoyo administrativo y de facturación. No procesa pagos, no custodia fondos de terceros ni tiene acceso operativo a cuentas bancarias o billeteras de los usuarios. La validación de cada pago y la emisión del recibo o factura correspondiente son responsabilidad exclusiva del administrador del condominio.</p>
+                    <p>Los documentos generados dentro de la aplicación (incluyendo el Informe de Operación P2P y la Carta de Declaración de Origen y Movimientos Lícitos de Fondos) se elaboran con base en los datos ingresados por el propio usuario. BiMoneda actúa únicamente como herramienta de formato y organización de esa información; el usuario que firma y/o presenta dichos documentos ante terceros es el único responsable de la veracidad de su contenido.</p>
+                    <p>Estos documentos no constituyen asesoría contable, legal ni tributaria, y deben ser validados por un contador público y/o abogado antes de su presentación formal ante bancos, entes reguladores u otras autoridades.</p>
+                    <p>Nos reservamos el derecho de actualizar los términos para cumplir con las normativas vigentes en materia de criptoactivos.</p>
                 </div>
              </div>
-             <MenuItem label="Política de Privacidad" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => setActiveSection('privacy')} />
-          </main>
-        </>
-      )}
-
-      {activeSection === 'privacy' && (
-        <>
-          <SubHeader title="Política de Privacidad" />
-          <main className="p-6 space-y-6 max-w-md mx-auto">
-             <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-outline-variant dark:border-white/10 shadow-sm space-y-6">
-                <h3 className="text-sm font-black text-primary dark:text-white uppercase tracking-widest border-b dark:border-white/10 pb-2">Política de Privacidad</h3>
-                <div className="text-[11px] text-on-surface-variant dark:text-white/60 leading-relaxed space-y-6 text-justify">
-                    <div>
-                        <p className="font-bold">Última actualización y entrada en vigor: 09 de septiembre de 2026</p>
-                    </div>
-
-                    <p>App BiMoneda ("nosotros", "nuestra plataforma") opera el sistema de administración, gestión residencial y apoyo a la facturación accesible a través del portal web https://bimoneda.vercel.app/login y sus aplicaciones móviles oficiales para Android e iOS.</p>
-
-                    <p>Esta Política de Privacidad describe cómo recopilamos, procesamos, almacenamos y protegemos la información personal y los registros de los usuarios. Al registrarse o utilizar App BiMoneda, usted acepta los términos descritos en el presente documento. Si no está de acuerdo con estas disposiciones, le solicitamos abstenerse de utilizar nuestros servicios.</p>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">1. Naturaleza del Tratamiento de Datos y Deslinde de Responsabilidad</h4>
-                        <p>A los efectos legales aplicables:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li><span className="font-bold">Responsable del Tratamiento:</span> El usuario o la Empresa Administradora actúa como el único Responsable del Tratamiento de los datos ingresados.</li>
-                            <li><span className="font-bold">Encargado del Tratamiento:</span> App BiMoneda actúa estrictamente en calidad de Encargado del Tratamiento, proporcionando la infraestructura tecnológica y el software de gestión contable y facturación.</li>
-                        </ul>
-                        <p className="font-bold pt-2">Delimitación Operativa</p>
-                        <p>App BiMoneda es una herramienta técnica de software de apoyo administrativo. No procesa pagos, no custodia ni gestiona fondos de terceros, ni tiene acceso operativo a cuentas bancarias o billeteras virtuales de los usuarios.</p>
-                        <p>La validación de cada pago, el registro de operaciones P2P reportadas por los usuarios y la emisión de recibos o facturas son responsabilidad exclusiva del usuario o de la Empresa Administradora.</p>
-                        <p>De conformidad con el artículo 9 de la Ley Orgánica Contra la Delincuencia Organizada y Financiamiento al Terrorismo (LOCDOFT) y la Providencia ONCDOFT-002-2021 (RUSO), App BiMoneda opera como un proveedor tecnológico de software y no clasifica como "sujeto obligado". El usuario que suscribe, genera o presenta cualquier documento dentro de la plataforma es el único responsable de su veracidad ante terceros.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">2. Información que Recopilamos</h4>
-                        <p className="font-bold">A. Información proporcionada directamente por el usuario</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Datos de la cuenta y del titular: RIF, Nombre / Razón Social, Nombre Completo del Titular, Cédula de Identidad o Pasaporte, Nacionalidad, Estado Civil, Dirección Fiscal, Ciudad, Estado, Profesión u Ocupación, Número Telefónico, Correo Electrónico y contraseña cifrada.</li>
-                            <li>Información financiera y administrativa: Montos de cuotas comunitarias, estados de cuenta, historial de pagos reportados y comprobantes digitalizados (imágenes de transferencias, depósitos bancarios o reportes de pagos).</li>
-                        </ul>
-                        <p className="font-bold pt-2">B. Información recopilada automáticamente</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Datos de diagnóstico y del dispositivo: Dirección IP, tipo de dispositivo, sistema operativo, modelo del terminal e identificadores únicos de dispositivo móvil.</li>
-                            <li>Permisos de la aplicación móvil: Envío de notificaciones push para avisos administrativos.</li>
-                            <li>Registros de actividad (Audit Log): Bitácora inmutable de acciones realizadas en el sistema (inicios de sesión, registros de pago y cambios de configuración) con fines de auditoría interna y seguridad.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">3. Finalidad del Tratamiento de Datos</h4>
-                        <p>Los datos recopilados se procesan para las siguientes finalidades operativas:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Gestión de Facturación y Contabilidad: Formateo y emisión de recibos, facturas, libros contables (Diario, Mayor, Ventas e Inventario).</li>
-                            <li>Seguridad de la Plataforma: Detección de fraudes, autenticación de usuarios y prevención de accesos no autorizados.</li>
-                            <li>Cumplimiento Legal y Fiscal: Soporte para la gestión administrativa con conversión USD/VES (a tasa oficial fijada por el Banco Central de Venezuela - BCV) y conservación de registros según la normativa venezolana aplicable.</li>
-                        </ul>
-                        <p className="pt-2"><span className="font-bold">Garantía de Privacidad:</span> App BiMoneda no comercializa, alquila ni cede datos personales a terceros. Los datos ingresados no son accesibles por otros usuarios ajenos a su organización o condominio, ni se utilizan para el entrenamiento de modelos de inteligencia artificial.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">4. Compartición y Transferencia de Datos</h4>
-                        <p>Podemos compartir información únicamente bajo los siguientes supuestos:</p>
-                        <ol className="list-decimal ml-4 space-y-2">
-                            <li><span className="font-bold">Proveedores de Infraestructura:</span> Servicios de almacenamiento en la nube, gestión de bases de datos y entrega de correos electrónicos transaccionales. Estos proveedores operan bajo estrictos acuerdos de confidencialidad y estándares internacionales de ciberseguridad.</li>
-                            <li><span className="font-bold">Requerimiento Legal:</span> Cuando sea exigido por un tribunal competente o autoridades públicas de la República Bolivariana de Venezuela en el marco de un proceso legal formal.</li>
-                        </ol>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">5. Almacenamiento, Seguridad e Infraestructura</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Infraestructura Cloud:</span> Los datos son procesados y almacenados mediante Supabase en servidores seguros ubicados en la región East US (Ohio) us-east-2.</li>
-                            <li><span className="font-bold">Cifrado de Credenciales:</span> Las contraseñas se gestionan mediante el algoritmo hash seguro bcrypt. En ningún caso se procesan o almacenan contraseñas en texto plano.</li>
-                            <li><span className="font-bold">Seguridad en Tránsito y Reposo:</span> Las comunicaciones entre los clientes (web y móvil) y la base de datos están cifradas mediante protocolos HTTPS / TLS 1.3. La gestión de archivos adjuntos utiliza políticas de seguridad a nivel de fila (Row Level Security - RLS).</li>
-                            <li><span className="font-bold">Aislamiento de Datos:</span> Arquitectura Multi-tenant garantizada a nivel de base de datos para prevenir el cruce o filtración de información entre distintas organizaciones o condominios.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">6. Retención y Cancelación de Datos</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Cuentas Activas:</span> Los datos se conservan mientras la relación contractual de uso de la plataforma permanecca vigente.</li>
-                            <li><span className="font-bold">Registros Contables y Fiscales:</span> Los comprobantes y estados de cuenta se conservan durante el período legal exigido para fines fiscales en Venezuela (mínimo 5 años).</li>
-                            <li><span className="font-bold">Cancelación del Servicio:</span> Al finalizar la relación comercial, el cliente podrá solicitar la exportación de sus datos en formatos estándar (CSV/Excel). Los datos activos se eliminarán de los servidores de producción en un lapso no mayor a sesenta (60) días continuos.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">7. Derechos del Usuario</h4>
-                        <p>De conformidad con el ordenamiento jurídico aplicable, el usuario tiene derecho a:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Acceso y Rectificación: Consultar sus datos personales y solicitar la corrección de información inexacta o desactualizada.</li>
-                            <li>Supresión: Solicitar la eliminación de su cuenta personal (sujeta a los lapsos de conservación legal de registros financieros).</li>
-                            <li>Portabilidad: Obtener una copia exportable de sus registros e historial administrativo.</li>
-                        </ul>
-                        <p className="pt-2">Para ejercer cualquiera de estos derechos, el usuario puede enviar una solicitud formal a la dirección de correo indicada en la sección de contacto.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">8. Datos de Menores de Edad</h4>
-                        <p>App BiMoneda está diseñada exclusivamente para personas mayores de 18 años con plena capacidad legal para asumir obligaciones. No recopilamos de forma intencionada información de menores de edad. En caso de detectar el registro no autorizado de un menor, la cuenta será suspendida de inmediato.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">9. Tecnologías de Almacenamiento Local (Cookies y Session Storage)</h4>
-                        <ul className="list-disc ml-4 space-y-2">
-                            <li><span className="font-bold">Plataforma Web:</span> Utiliza localStorage y cookies técnicas estrictamente necesarias para mantener activa la sesión del usuario de forma segura.</li>
-                            <li><span className="font-bold">Aplicación Móvil:</span> Utiliza almacenamiento seguro en el dispositivo (Secure Store / EncryptedSharedPreferences) para el resguardo cifrado de los tokens de autenticación.</li>
-                            <li><span className="font-bold">Sin Rastreo Comercial:</span> No utilizamos herramientas de seguimiento publicitario, píxeles de remarketing ni compartimos hábitos de navegación con agencias de marketing.</li>
-                        </ul>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">10. Marco Legal Aplicable y Jurisdicción</h4>
-                        <p>La presente Política de Privacidad se rige e interpreta de conformidad con la legislación de la República Bolivariana de Venezuela, incluyendo:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li>Decreto Constituyente sobre el Sistema Integral de Criptoactivos (Gaceta Oficial N° 41.575 del 30 de enero de 2019) y la Resolución N° 008 (Gaceta Oficial N° 41.581 del 7 de febrero de 2019) sobre las Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo.</li>
-                            <li>Ley Especial Contra los Delitos Informáticos.</li>
-                            <li>Ley sobre Mensajes de Datos y Firmas Electrónicas.</li>
-                            <li>Ley Orgánica de Telecomunicaciones.</li>
-                            <li>Constitución de la República Bolivariana de Venezuela (Art. 60) referente a la protección del honor, vida privada e intimidad.</li>
-                        </ul>
-                        <p className="pt-2">Cualquier controversia derivada del uso de la plataforma será sometida a la jurisdicción de los tribunales competentes de la República Bolivariana de Venezuela.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">11. Descargo de Responsabilidad Legal y Documental</h4>
-                        <p className="font-bold italic">Nota Exonerativa sobre Documentos Generados:</p>
-                        <p>Los documentos y reportes generados dentro de App BiMoneda (incluyendo el Informe de Operación P2P, Estados de Cuenta y la Carta de Declaración de Origen y Movimientos Lícitos de Fondos) se elaboran automáticamente con base en la información registrada por el propio usuario.</p>
-                        <p>App BiMoneda actúa únicamente como herramienta de formato y organización de datos, no procesa pagos, no custodia fondos ni valida la exactitud de la información contenida. El usuario que firma o presenta estos documentos ante terceros (incluyendo instituciones financieras o entes reguladores) es el único responsable de su veracidad. Dichos reportes no constituyen asesoría legal, contable ni tributaria; se recomienda su validación con un Contador Público o Abogado antes de su presentación formal.</p>
-                        <p>Nos reservamos el derecho de actualizar los presentes términos para adaptarlos a cambios legislativos o funcionales de la plataforma.</p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-primary dark:text-white uppercase">12. Contacto y Atención a Incidentes</h4>
-                        <p>Para consultas sobre el tratamiento de datos, ejercicio de derechos o reporte de incidentes de seguridad:</p>
-                        <ul className="list-disc ml-4 space-y-1">
-                            <li><span className="font-bold">Correo Electrónico:</span> desarrollodeappcondominio@gmail.com</li>
-                            <li><span className="font-bold">Portal Web:</span> https://bimoneda.vercel.app/login</li>
-                            <li><span className="font-bold">Ubicación:</span> República Bolivariana de Venezuela</li>
-                        </ul>
-                    </div>
-                </div>
-             </div>
+             <MenuItem label="Política de Privacidad" icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 011.414.293l5.414 5.414a1 1 0 01.293 1.414V19a2 2 0 01-2 2z" /></svg>} onClick={() => alert('Política de Privacidad')} />
           </main>
         </>
       )}
