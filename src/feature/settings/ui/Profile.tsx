@@ -223,14 +223,14 @@ const Profile: React.FC = () => {
     // Helper for sections
     const drawSection = (title: string) => {
       doc.setFont("times", "bold");
-      doc.setFontSize(10.5);
+      doc.setFontSize(10);
       doc.setTextColor(colorRed[0], colorRed[1], colorRed[2]);
       doc.text(title, margin, y);
-      y += 2;
+      y += 1.5;
       doc.setDrawColor(colorGold[0], colorGold[1], colorGold[2]);
       doc.setLineWidth(0.2);
       doc.line(margin, y, pageWidth - margin, y);
-      y += 6;
+      y += 4.5;
     };
 
     // I. Fundamento Legal
@@ -240,8 +240,8 @@ const Profile: React.FC = () => {
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     const introText = "La presente declaración se emite de conformidad con el Decreto Constituyente sobre el Sistema Integral de Criptoactivos, publicado en Gaceta Oficial N.° 41.575 del 30/01/2019, y con el artículo 27 de la Resolución N.° 008 del 31/01/2019 (Gaceta Oficial N.° 41.581, del 07/02/2019), \"Normas para la Administración y Mitigación de los Riesgos de Legitimación de Capitales y Financiamiento al Terrorismo\".";
     const splitIntro = doc.splitTextToSize(introText, maxWidth);
-    doc.text(splitIntro, margin, y, { align: 'justify' });
-    y += splitIntro.length * 4.5 + 4;
+    doc.text(splitIntro, margin, y);
+    y += splitIntro.length * 4.1 + 3;
 
     // II. Identificación
     drawSection("II. Identificación del Declarante");
@@ -274,7 +274,7 @@ const Profile: React.FC = () => {
         doc.setTextColor(colorText[0], colorText[1], colorText[2]);
         doc.text(idData[i+1].value, margin + 125, idY);
       }
-      idY += 5;
+      idY += 4.6;
     }
     y = idY + 4;
 
@@ -284,15 +284,15 @@ const Profile: React.FC = () => {
     const occupation = editCompany?.occupation || 'comerciante independiente';
     const swornText = `Declaro bajo mi responsabilidad que los capitales, valores o títulos producto de mi actividad de arbitraje de activos digitales y operaciones P2P proceden de actividad lícita, verificable ante los organismos competentes, sin relación alguna con hechos ilícitos contemplados en la legislación venezolana. Los fondos utilizados provienen de ingresos personales lícitos y verificables, debido a que soy ${occupation} y, aunado a esto, también invierto mi dinero en compra-venta de activos digitales, como la actividad comercial autónoma de arbitraje financiero P2P (Peer-to-Peer), ejecutada a través de plataformas de intercambio de criptoactivos autorizadas.`;
     const splitSworn = doc.splitTextToSize(swornText, maxWidth);
-    doc.text(splitSworn, margin, y, { align: 'justify' });
-    y += splitSworn.length * 4.5 + 4;
+    doc.text(splitSworn, margin, y);
+    y += splitSworn.length * 4.1 + 3;
 
     // IV. Operativa
     drawSection("IV. Descripción de la Operativa");
-    const opText = "La operación consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
+    const opText = "La operation consiste en la compra-venta cíclica de activos digitales (USDT), utilizando cuentas propias en moneda extranjera y en moneda nacional, generando un margen de ganancia por diferencial cambiario y spread de mercado en cada ciclo operativo.";
     const splitOp = doc.splitTextToSize(opText, maxWidth);
-    doc.text(splitOp, margin, y, { align: 'justify' });
-    y += splitOp.length * 4.5 + 2;
+    doc.text(splitOp, margin, y);
+    y += splitOp.length * 4.1 + 1.5;
 
     const listItems = [
       "• Actividad realizada estrictamente a título personal.",
@@ -302,30 +302,44 @@ const Profile: React.FC = () => {
     listItems.forEach(item => {
       const splitItem = doc.splitTextToSize(item, maxWidth - 5);
       doc.text(splitItem, margin + 5, y);
-      y += splitItem.length * 4.5;
+      y += splitItem.length * 4.1;
     });
-    y += 4;
+    y += 3;
 
     // V. Trazabilidad
     drawSection("V. Verificación y Trazabilidad");
     const traceItems = [
       "1. Cuenta verificada en Exchange Binance con nivel de verificación KYC completo (alta seguridad).",
-      "2. Trazabilidad: débito en moneda extranjera → adquisición de USDT → liquidación en mercado P2P nacional → obtención de moneda nacional → reinversión del ciclo.",
+      "2. Trazabilidad: débito en moneda extranjera -> adquisición de USDT -> liquidación en mercado P2P nacional -> obtención de moneda nacional -> reinversión del ciclo.",
       "3. Historial de órdenes disponible, con correlación entre incremento patrimonial y volumen/márgenes reportados por las plataformas."
     ];
     traceItems.forEach(item => {
       const splitItem = doc.splitTextToSize(item, maxWidth - 5);
       doc.text(splitItem, margin + 5, y);
-      y += splitItem.length * 4.5;
+      y += splitItem.length * 4.1;
     });
     y += 6;
 
     const closingText = "En virtud de lo expuesto, declaro que los fondos movilizados en mis cuentas tienen origen lícito y trazable, derivado de actividad comercial legítima de arbitraje de activos digitales por cuenta propia, guardando perfecta correlación con el ciclo de compra, custodia temporal, venta y toma de ganancias de los criptoactivos declarados.";
     const splitClosing = doc.splitTextToSize(closingText, maxWidth);
-    doc.text(splitClosing, margin, y, { align: 'justify' });
-    y += splitClosing.length * 4.5 + 15;
+    doc.text(splitClosing, margin, y);
+    y += splitClosing.length * 4.1 + 10;
 
     // Signature Block
+    // Comprobar espacio ANTES de dibujar la firma: si el contenido previo
+    // ya dejó poco margen, es mejor abrir página nueva aquí que arriesgarse
+    // a que la firma quede dibujada fuera del área visible de la página.
+    if (y > pageHeight - 55) {
+      doc.addPage();
+      doc.setFillColor(253, 252, 248);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setDrawColor(colorRed[0], colorRed[1], colorRed[2]);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+      doc.setLineWidth(0.2);
+      doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+      y = 30;
+    }
     doc.setDrawColor(colorText[0], colorText[1], colorText[2]);
     doc.setLineWidth(0.4);
     doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
@@ -339,7 +353,26 @@ const Profile: React.FC = () => {
     doc.text(`${editCompany?.id_number || editCompany?.rif || '________________'}  ·  ${editCompany?.phone || '________________'}`, pageWidth / 2, y, { align: 'center' });
 
     // Footer
-    y = pageHeight - 25;
+    // ANTES: `y = pageHeight - 25` fijo, sin importar dónde había quedado
+    // la firma. Si el contenido crecía (ocupación/domicilio más largos,
+    // etc.), el pie de página terminaba imprimiéndose ENCIMA de la firma,
+    // dando la impresión de texto "cortado" o superpuesto.
+    y += 10;
+    if (y > pageHeight - 35) {
+      // No hay espacio para el pie sin solaparse con la firma: se usa una
+      // página nueva en vez de aplastar el contenido anterior.
+      doc.addPage();
+      doc.setFillColor(253, 252, 248);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setDrawColor(colorRed[0], colorRed[1], colorRed[2]);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+      doc.setLineWidth(0.2);
+      doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+      y = pageHeight - 25;
+    } else {
+      y = Math.max(y, pageHeight - 25);
+    }
     doc.setDrawColor(184, 155, 106);
     doc.setLineWidth(0.2);
     doc.line(margin, y, pageWidth - margin, y);
@@ -349,7 +382,7 @@ const Profile: React.FC = () => {
     doc.setFont("times", "italic");
     const footerText = "Este documento es generado por BiMoneda como herramienta de apoyo contable/administrativo, con base en los datos registrados por el propio usuario. BiMoneda no procesa pagos, no custodia fondos ni valida la exactitud de la información aquí contenida. El usuario que presenta este documento ante terceros es el único responsable de su veracidad. No constituye asesoría legal, contable ni tributaria; se recomienda validarlo con un contador público y/o abogado antes de presentarlo ante terceros.";
     const splitFooter = doc.splitTextToSize(footerText, maxWidth);
-    doc.text(splitFooter, margin, y, { align: 'center' });
+    doc.text(splitFooter, pageWidth / 2, y, { align: 'center' });
 
     doc.save(`CARTA_DECLARACION_${refDoc}.pdf`);
   };

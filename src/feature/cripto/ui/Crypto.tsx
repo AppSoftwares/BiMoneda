@@ -156,7 +156,7 @@ const Crypto: React.FC = () => {
     doc.setTextColor(colorText[0], colorText[1], colorText[2]);
     const introText = "Se deja constancia que la actividad comercial de intercambio de criptoactivos aquí descrita se encuentra amparada bajo el marco legal vigente de la República Bolivariana de Venezuela, en cumplimiento de los principios de transparencia y licitud de fondos, conforme al Decreto Constituyente sobre el Sistema Integral de Criptoactivos y la Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).";
     const splitIntro = doc.splitTextToSize(introText, maxWidth);
-    doc.text(splitIntro, margin, y, { align: 'justify' });
+    doc.text(splitIntro, margin, y);
     y += splitIntro.length * 3.8 + 3;
 
     // II. Detalle de la Operación
@@ -198,7 +198,7 @@ const Crypto: React.FC = () => {
     y += 1.5;
     const platText = "Las plataformas utilizadas operan bajo estándares de seguridad y trazabilidad, encontrándose en algunos casos registradas ante la Superintendencia Nacional de Criptoactivos y Actividades Conexas (SUNACRIP), conforme al Sistema Integral de Criptoactivos (SIC).";
     const splitPlat = doc.splitTextToSize(platText, maxWidth);
-    doc.text(splitPlat, margin, y, { align: 'justify' });
+    doc.text(splitPlat, margin, y);
     y += splitPlat.length * 3.8 + 3;
 
     // IV. Destino de Fondos
@@ -211,12 +211,42 @@ const Crypto: React.FC = () => {
 
     [p1, p2, p3, p4, p5].forEach(p => {
         const splitP = doc.splitTextToSize(p, maxWidth);
-        doc.text(splitP, margin, y, { align: 'justify' });
-        y += splitP.length * 3.8 + 2;
+        // Salto de página de seguridad: si el párrafo no cabe antes de la
+        // zona reservada para la Certificación y el pie de página, se abre
+        // una página nueva en vez de dejar que el texto se corte o se monte
+        // sobre el pie de página.
+        const neededHeight = splitP.length * 3.8 + 2;
+        if (y + neededHeight > pageHeight - 40) {
+            doc.addPage();
+            doc.setFillColor(253, 252, 248);
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+            doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+            doc.setLineWidth(0.8);
+            doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+            doc.setLineWidth(0.2);
+            doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+            doc.setFont("times", "normal");
+            doc.setFontSize(8.4);
+            doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+            y = 20;
+        }
+        doc.text(splitP, margin, y);
+        y += neededHeight;
     });
     y += 2;
 
     // V. Certificación
+    if (y + 30 > pageHeight - 20) {
+      doc.addPage();
+      doc.setFillColor(253, 252, 248);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+      doc.setLineWidth(0.2);
+      doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+      y = 25;
+    }
     doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
     doc.setLineWidth(0.2);
     doc.setFillColor(245, 248, 252);
@@ -242,7 +272,22 @@ const Crypto: React.FC = () => {
     doc.text("y Providencia SUNACRIP N.° 008-2019 (Gaceta Oficial N.° 41.578).", pageWidth / 2, y, { align: 'center' });
 
     // Footer
-    y = pageHeight - 18;
+    // Igual que en la Carta de Declaración: no fijar el pie a una posición
+    // absoluta sin comprobar que no se solape con el contenido anterior.
+    y += 6;
+    if (y > pageHeight - 25) {
+      doc.addPage();
+      doc.setFillColor(253, 252, 248);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+      doc.setLineWidth(0.2);
+      doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+      y = pageHeight - 18;
+    } else {
+      y = Math.max(y, pageHeight - 18);
+    }
     doc.setDrawColor(159, 179, 204);
     doc.setLineWidth(0.2);
     doc.line(margin, y, pageWidth - margin, y);
@@ -257,7 +302,7 @@ const Crypto: React.FC = () => {
     doc.save(`Informe_P2P_${op.order_number_binance || op.id.substring(0, 12).toUpperCase()}.pdf`);
   };
 
-  const exportHistory = (format: 'PDF' | 'CSV') => {
+  const exportHistory = async (format: 'PDF' | 'CSV') => {
     const filtered = ops.filter(op => {
         const d = new Date(op.date);
         return (d.getMonth() + 1 === exportMonth) && (d.getFullYear() === exportYear);
@@ -265,26 +310,179 @@ const Crypto: React.FC = () => {
 
     if (filtered.length === 0) return alert('No hay datos para el período seleccionado');
 
+    const totalCompras = filtered.filter(o => o.type === 'COMPRA').reduce((a, o) => a + o.total_amount_bs, 0);
+    const totalVentas = filtered.filter(o => o.type === 'VENTA').reduce((a, o) => a + o.total_amount_bs, 0);
+
     if (format === 'CSV') {
-        let csv = 'Fecha,Tipo,Activo,Cantidad,Precio Bs,Total Bs,Plataforma,Referencia\n';
+        // CSV completo: incluye todos los campos que la app realmente guarda
+        // (antes solo traía 8 columnas básicas y perdía la contraparte, el
+        // estado de la orden, el método de pago y las comisiones).
+        let csv = 'Fecha,Tipo,Activo,Cantidad,Precio Unit. Bs,Total Bs,Comisión Bs,Plataforma,N. Orden Binance,Estado,Método de Pago,Contraparte\n';
         filtered.forEach(op => {
-            csv += `${op.date},${op.type},${op.asset},${op.amount_crypto},${op.unit_price_bs},${op.total_amount_bs},${op.platform},${op.order_number_binance || op.reference}\n`;
+            const row = [
+              op.date,
+              op.type,
+              op.asset,
+              op.amount_crypto,
+              op.unit_price_bs,
+              op.total_amount_bs,
+              op.fee_bs || 0,
+              op.platform,
+              op.order_number_binance || op.reference || '',
+              op.order_status || 'COMPLETADO',
+              op.payment_method || '',
+              op.counterparty_nickname || op.counterparty_full_name || ''
+            ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            csv += row + '\n';
         });
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `Historial_P2P_${exportMonth}_${exportYear}.csv`;
         link.click();
-    } else {
-        const doc = new jsPDF();
-        doc.text(`Historial de Órdenes P2P - ${exportMonth}/${exportYear}`, 14, 15);
-        autoTable(doc, {
-            head: [['Fecha', 'Tipo', 'Activo', 'Cant.', 'Total (Bs)']],
-            body: filtered.map(op => [new Date(op.date).toLocaleDateString(), op.type, op.asset, op.amount_crypto, op.total_amount_bs.toLocaleString('es-VE')]),
-            startY: 25
-        });
-        doc.save(`Historial_P2P_${exportMonth}_${exportYear}.pdf`);
+        return;
     }
+
+    // Ganancia/pérdida neta realizada en el período (viene del mismo cálculo
+    // de costo promedio que usa AccountingService, para que este reporte
+    // cuadre exactamente con los Libros Contables).
+    const startDate = new Date(exportYear, exportMonth - 1, 1).toISOString();
+    const endDate = new Date(exportYear, exportMonth, 0, 23, 59, 59).toISOString();
+    let netProfit = 0;
+    try {
+      const { data: movements } = await (supabase as any)
+        .from('inventory_movements')
+        .select('realized_profit_bs, created_at')
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+      netProfit = (movements || []).reduce((acc: number, m: any) => acc + (m.realized_profit_bs || 0), 0);
+    } catch (e) {
+      console.error('No se pudo obtener la ganancia neta del período:', e);
+    }
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const colorBlue: [number, number, number] = [31, 74, 122];
+    const colorText: [number, number, number] = [26, 26, 26];
+    const margin = 14;
+    const monthName = new Date(exportYear, exportMonth - 1, 1).toLocaleDateString('es-VE', { month: 'long' });
+
+    const drawPageFrame = () => {
+      doc.setFillColor(253, 252, 248);
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+      doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+      doc.setLineWidth(0.8);
+      doc.rect(5, 5, pageWidth - 10, pageHeight - 10, 'D');
+      doc.setLineWidth(0.2);
+      doc.rect(6.5, 6.5, pageWidth - 13, pageHeight - 13, 'D');
+    };
+    drawPageFrame();
+
+    let y = 20;
+    doc.setFont("times", "bold");
+    doc.setFontSize(15);
+    doc.setTextColor(colorText[0], colorText[1], colorText[2]);
+    doc.text("Historial de Operaciones P2P", pageWidth / 2, y, { align: 'center' });
+    y += 6;
+    doc.setFont("times", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(68, 68, 68);
+    doc.text(`Período: ${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${exportYear}`, pageWidth / 2, y, { align: 'center' });
+    y += 5;
+    doc.setDrawColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 8;
+
+    // Resumen del período
+    doc.setFont("times", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.text("Resumen del Período", margin, y);
+    y += 5;
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin },
+      theme: 'grid',
+      styles: { fontSize: 8.5, font: 'times', cellPadding: 2 },
+      columnStyles: {
+        0: { fillColor: [238, 243, 250], textColor: colorBlue, fontStyle: 'bold' },
+        2: { fillColor: [238, 243, 250], textColor: colorBlue, fontStyle: 'bold' },
+      },
+      body: [
+        ['Total Compras (Bs)', totalCompras.toLocaleString('es-VE', { minimumFractionDigits: 2 }), 'N.° de Operaciones', String(filtered.length)],
+        ['Total Ventas (Bs)', totalVentas.toLocaleString('es-VE', { minimumFractionDigits: 2 }), 'Ganancia/Pérdida Neta (Bs)', netProfit.toLocaleString('es-VE', { minimumFractionDigits: 2 })],
+      ]
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // Detalle de operaciones
+    doc.setFont("times", "bold");
+    doc.setFontSize(9.5);
+    doc.setTextColor(colorBlue[0], colorBlue[1], colorBlue[2]);
+    doc.text("Detalle de Operaciones", margin, y);
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      margin: { left: margin, right: margin, bottom: 22 },
+      theme: 'grid',
+      styles: { fontSize: 6.8, font: 'times', cellPadding: 1.3, lineColor: [201, 214, 232] },
+      headStyles: { fillColor: colorBlue, textColor: 255, fontStyle: 'bold', fontSize: 6.8 },
+      // autoTable pagina automáticamente si el historial no cabe en una
+      // sola hoja — a diferencia del reporte anterior, que no tenía
+      // ninguna protección contra desbordamiento.
+      didDrawPage: () => {
+        if (doc.internal.getNumberOfPages() > 1) drawPageFrame();
+      },
+      head: [['Fecha', 'Tipo', 'Cant.', 'P. Unit. Bs', 'Total Bs', 'Plataforma', 'N. Orden', 'Estado', 'Contraparte']],
+      body: filtered.map(op => [
+        new Date(op.date).toLocaleDateString('es-VE'),
+        op.type === 'COMPRA' ? 'Compra' : 'Venta',
+        op.amount_crypto,
+        op.unit_price_bs.toLocaleString('es-VE'),
+        op.total_amount_bs.toLocaleString('es-VE'),
+        op.platform,
+        op.order_number_binance || op.reference || 'N/A',
+        op.order_status || 'COMPLETADO',
+        op.counterparty_nickname || op.counterparty_full_name || 'N/A'
+      ])
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+
+    // Nota legal breve (referencia a la Carta de Declaración individual)
+    if (y > pageHeight - 30) {
+      doc.addPage();
+      drawPageFrame();
+      y = 20;
+    }
+    doc.setFont("times", "italic");
+    doc.setFontSize(7.5);
+    doc.setTextColor(68, 68, 68);
+    const noteText = "Este historial resume las operaciones P2P registradas en BiMoneda para el período indicado. Para el soporte legal individual de cada operación, exporte el Informe P2P correspondiente desde el detalle de cada transacción.";
+    doc.text(doc.splitTextToSize(noteText, pageWidth - margin * 2), margin, y);
+    y += doc.splitTextToSize(noteText, pageWidth - margin * 2).length * 3.5 + 4;
+
+    // Footer legal
+    if (y > pageHeight - 20) {
+      doc.addPage();
+      drawPageFrame();
+      y = pageHeight - 20;
+    } else {
+      y = Math.max(y, pageHeight - 20);
+    }
+    doc.setDrawColor(159, 179, 204);
+    doc.setLineWidth(0.2);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 3;
+    doc.setFontSize(6.4);
+    doc.setTextColor(102, 102, 102);
+    doc.setFont("times", "italic");
+    const footerText = t('legal_report_disclaimer');
+    doc.text(doc.splitTextToSize(footerText, pageWidth - margin * 2), margin, y, { align: 'center' });
+
+    doc.save(`Historial_P2P_${exportMonth}_${exportYear}.pdf`);
   };
 
   return (
