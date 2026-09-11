@@ -5,8 +5,9 @@ import { useLanguage } from '../../../core/context/LanguageContext';
 import { useTheme } from '../../../core/context/ThemeContext';
 import jsPDF from 'jspdf';
 import BottomNav from '../../../core/nav/BottomNav';
+import { savePdf } from '../../../core/utils/fileDownload';
 
-type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company' | 'binance';
+type ProfileSection = 'main' | 'account' | 'security' | 'appearance' | 'notifications' | 'help' | 'legal' | 'company' | 'binance' | 'privacy';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const generateDeclarationLetter = () => {
+  const generateDeclarationLetter = async () => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -386,7 +387,7 @@ const Profile: React.FC = () => {
       doc.text(line, pageWidth / 2, y + i * 3.1, { align: 'center' });
     });
 
-    doc.save(`CARTA_DECLARACION_${refDoc}.pdf`);
+    await savePdf(doc, `CARTA_DECLARACION_${refDoc}.pdf`);
   };
 
   const uploadFile = async (event: React.ChangeEvent<HTMLInputElement>, bucket: string, field: string) => {
@@ -708,7 +709,7 @@ const Profile: React.FC = () => {
       {activeSection === 'notifications' && (
         <>
           <SubHeader title={t('notifications')} />
-          <main className="p-6 space-y-8 max-md mx-auto text-center">
+          <main className="p-6 space-y-8 max-w-md mx-auto text-center">
              <p className="text-[11px] font-bold text-on-surface-variant dark:text-white/40 uppercase px-4 leading-relaxed">Gestiona cómo quieres recibir las alertas de tu comunidad.</p>
              <div className="bg-white dark:bg-white/5 rounded-3xl shadow-level-1 border border-outline-variant dark:border-white/10 p-8 flex items-center justify-between">
                 <div className="flex items-center gap-4 text-left">

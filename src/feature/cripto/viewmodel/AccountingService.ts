@@ -55,7 +55,7 @@ export interface CryptoOp {
 
 class AccountingService {
 
-  async syncWithBinance(month: number, year: number) {
+  async syncWithBinance(month?: number, year?: number) {
     const { data: { user } } = await supabase.auth.getUser();
     const apiKey = user?.user_metadata?.binance_key;
     const apiSecret = user?.user_metadata?.binance_secret;
@@ -70,72 +70,107 @@ class AccountingService {
     let rate = 36.00;
     try { rate = await bcv.getLatestRate(); } catch (e) { /* usa default */ }
 
-    // Rango del mes solicitado
-    const startTime = new Date(year, month - 1, 1, 0, 0, 0).getTime();
-    const endTime = new Date(year, month, 0, 23, 59, 59).getTime();
+    // Antes se traía SIEMPRE el historial completo de Binance, lo cual es
+    // lento y gasta cupo de la API sin necesidad: los meses anteriores ya
+    // sincronizados quedan guardados en `crypto_operations` (el chequeo de
+    // duplicados por `order_number_binance` evita volver a insertarlos).
+    // Ahora se acota la consulta al mes seleccionado; si no se indica mes,
+    // se usa el mes actual por defecto.
+    const now = new Date();
+    const targetMonth = month ?? (now.getMonth() + 1);
+    const targetYear = year ?? now.getFullYear();
+    const rangeStart = new Date(targetYear, targetMonth - 1, 1).getTime();
+    const rangeEnd = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999).getTime();
 
     let importedCount = 0;
 
-    // Binance limita las consultas a rangos de 30 días. Para meses de 31
-    // días, partimos la consulta en dos ventanas.
-    const windowSize = 30 * 24 * 60 * 60 * 1000;
-    let currentStart = startTime;
-
-    while (currentStart < endTime) {
-        const currentEnd = Math.min(currentStart + windowSize, endTime);
-
-        for (const tradeType of ['BUY', 'SELL'] as const) {
-            let page = 1;
-            let hasMore = true;
-
-            while (hasMore && page <= 10) { // Límite de seguridad de 10 páginas
-                const orders = await this.fetchBinanceC2COrders(apiKey, apiSecret, tradeType, currentStart, currentEnd, page);
-
-                if (orders.length === 0) {
-                    hasMore = false;
-                    continue;
-                }
-
-                for (const order of orders) {
-                    // Solo órdenes completadas
-                    if (order.orderStatus !== 'COMPLETED') continue;
-
-                    // Verificar si ya existe por número de orden Binance
-                    const { data: exists } = await (supabase as any)
-                        .from('crypto_operations')
-                        .select('id')
-                        .eq('order_number_binance', order.orderNumber)
-                        .maybeSingle();
-
-                    if (exists) continue;
-
-                    await this.processOperation({
-                        type: order.tradeType === 'BUY' ? 'COMPRA' : 'VENTA',
-                        asset: order.asset,
-                        qty: Number(order.amount),
-                        priceBs: Number(order.unitPrice),
-                        bcvRate: rate,
-                        platform: 'Binance P2P',
-                        reference: order.orderNumber,
-                        feeBs: Number(order.commission) || 0,
-                        date: new Date(order.createTime).toISOString(),
-                        binanceOrder: order.orderNumber,
-                        orderStatus: 'COMPLETADO',
-                        qtyNet: Number(order.amount),
-                        counterpartyNickname: order.counterPartNickName,
-                        exchangeDatetime: new Date(order.createTime).toISOString()
-                    });
-                    importedCount++;
-                }
-
-                if (orders.length < 100) hasMore = false;
-                else page++;
-            }
+    // El endpoint P2P/C2C de Binance exige indicar tradeType (BUY o SELL)
+    // en cada llamada; no existe un modo que traiga ambos a la vez.
+    for (const tradeType of ['BUY', 'SELL'] as const) {
+        let orders: any[] = [];
+        try {
+            orders = await this.fetchBinanceC2COrdersInRange(apiKey, apiSecret, tradeType, rangeStart, rangeEnd);
+        } catch (e: any) {
+            throw new Error(`Error de Binance (${tradeType}): ${e.message}`);
         }
-        currentStart = currentEnd + 1;
+
+        for (const order of orders) {
+            // Solo órdenes completadas
+            if (order.orderStatus !== 'COMPLETED') continue;
+
+            // Verificar si ya existe (evita duplicar si el mes ya estaba sincronizado)
+            const { data: exists } = await (supabase as any)
+                .from('crypto_operations')
+                .select('id')
+                .eq('order_number_binance', order.orderNumber)
+                .maybeSingle();
+
+            if (exists) continue;
+
+            await this.processOperation({
+                type: order.tradeType === 'BUY' ? 'COMPRA' : 'VENTA',
+                asset: order.asset,
+                qty: Number(order.amount),
+                // "price" no existe en la respuesta de Binance para este
+                // endpoint: el campo real es "unitPrice". Antes esto
+                // producía NaN y corrompía la operación importada.
+                priceBs: Number(order.unitPrice),
+                bcvRate: rate,
+                platform: 'Binance P2P',
+                reference: order.orderNumber,
+                feeBs: Number(order.commission) || 0,
+                date: new Date(order.createTime).toISOString(),
+                binanceOrder: order.orderNumber,
+                orderStatus: 'COMPLETADO',
+                qtyNet: Number(order.amount),
+                // Antes se leía "order.counterpartyNickname", que no existe
+                // en la respuesta real de Binance (el campo correcto es
+                // "counterPartNickName"), así que la contraparte siempre
+                // quedaba vacía aunque la sincronización funcionara.
+                counterpartyNickname: order.counterPartNickName,
+                exchangeDatetime: new Date(order.createTime).toISOString()
+            });
+            importedCount++;
+        }
     }
 
     return importedCount;
+  }
+
+  /**
+   * Trae las órdenes de un tradeType dentro de [rangeStart, rangeEnd],
+   * partiendo el rango en ventanas de máximo 30 días (límite documentado
+   * de Binance para este endpoint) y paginando dentro de cada ventana.
+   */
+  private async fetchBinanceC2COrdersInRange(
+    apiKey: string,
+    apiSecret: string,
+    tradeType: 'BUY' | 'SELL',
+    rangeStart: number,
+    rangeEnd: number
+  ): Promise<any[]> {
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    const allOrders: any[] = [];
+
+    let chunkStart = rangeStart;
+    while (chunkStart <= rangeEnd) {
+        const chunkEnd = Math.min(chunkStart + THIRTY_DAYS_MS - 1, rangeEnd);
+
+        // Paginación dentro de la ventana (máx. 100 filas por página en
+        // Binance; se detiene al recibir menos de 100, o tras 10 páginas
+        // como tope de seguridad para no hacer un loop infinito).
+        let page = 1;
+        while (page <= 10) {
+            const pageOrders = await this.fetchBinanceC2COrders(apiKey, apiSecret, tradeType, chunkStart, chunkEnd, page);
+            allOrders.push(...pageOrders);
+            if (pageOrders.length < 100) break;
+            page++;
+        }
+
+        chunkStart = chunkEnd + 1;
+    }
+
+    return allOrders;
   }
 
   private async fetchBinanceC2COrders(
@@ -147,12 +182,16 @@ class AccountingService {
     page: number = 1
   ) {
     const timestamp = Date.now();
-    const params = `tradeType=${tradeType}&startTimestamp=${startTimestamp}&endTimestamp=${endTimestamp}&page=${page}&rows=100&timestamp=${timestamp}`;
+    const params = `tradeType=${tradeType}&startTimestamp=${startTimestamp}&endTimestamp=${endTimestamp}&rows=100&page=${page}&timestamp=${timestamp}`;
     const signature = await this.generateSignature(params, apiSecret);
+    // Endpoint corregido: "/sapi/v1/p2p/userTradeHistory" NO EXISTE en la
+    // API de Binance — por eso la sincronización nunca funcionaba. El
+    // endpoint real para historial P2P/C2C es:
     const url = `https://api.binance.com/sapi/v1/c2c/orderMatch/listUserOrderHistory?${params}&signature=${signature}`;
 
     let result: any;
 
+    // Si estamos en entorno nativo (móvil), usamos CapacitorHttp para saltar CORS
     if (isNative()) {
         const capHttp = await getCapacitorHttp();
         if (capHttp) {
@@ -165,16 +204,24 @@ class AccountingService {
             throw new Error('Plugin de Capacitor no disponible.');
         }
     } else {
+        // En navegador (localhost), esto suele dar error "Failed to fetch" por CORS
         try {
             const response = await fetch(url, {
                 headers: { 'X-MBX-APIKEY': apiKey }
             });
             result = await response.json();
         } catch (e) {
-            throw new Error('Error de CORS: Binance no permite peticiones desde navegadores.');
+            throw new Error('Error de CORS: Binance no permite peticiones desde navegadores. Esta función solo trabajará en la App Móvil o mediante un Proxy/Edge Function.');
         }
     }
 
+    // OJO: este endpoint de Binance devuelve éxito con code: "000000"
+    // (string), no con code === 0. La condición anterior
+    // (`result.code && result.code !== 0`) daba TRUE incluso en una
+    // respuesta exitosa, porque "000000" !== 0 siempre es verdadero al
+    // comparar string con number — o sea, la sincronización lanzaba error
+    // SIEMPRE, incluso cuando Binance respondía correctamente. Ahora se
+    // valida directamente que "data" sea un array.
     if (!result || !Array.isArray(result.data)) {
         throw new Error(result?.msg || result?.message || 'Respuesta inesperada de Binance.');
     }

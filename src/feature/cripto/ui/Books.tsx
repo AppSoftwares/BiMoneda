@@ -4,6 +4,7 @@ import { supabase } from '../../../data/db/supabase';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import BottomNav from '../../../core/nav/BottomNav';
+import { savePdf } from '../../../core/utils/fileDownload';
 
 type Tab = 'diary' | 'ledger' | 'inventory' | 'sales';
 
@@ -79,7 +80,7 @@ const Books: React.FC = () => {
     fetchData();
   }, [activeTab]);
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     const doc = new jsPDF();
     const titles: Record<Tab, string> = {
       diary: 'Libro Diario',
@@ -134,14 +135,14 @@ const Books: React.FC = () => {
               e.id,
               e.balance_qty,
               e.avg_cost,
-              (e.balance_value_bs || 0).toLocaleString('es-VE'),
+              e.balance_value_bs.toLocaleString('es-VE'),
               e.realized_profit_bs != null ? e.realized_profit_bs.toLocaleString('es-VE') : '—'
             ]),
             startY: 35,
             styles: { fontSize: 8 }
         });
     }
-    doc.save(`${title.replace(/ /g, '_')}_${Date.now()}.pdf`);
+    await savePdf(doc, `${title.replace(/ /g, '_')}_${Date.now()}.pdf`);
   };
 
   return (
@@ -236,7 +237,7 @@ const Books: React.FC = () => {
                         </div>
                     </div>
                     <div className="text-sm font-black text-accent-gold dark:text-secondary">
-                        Bs. {activeTab === 'inventory' ? (item.balance_value_bs || 0).toLocaleString('es-VE') : (item.amount_bs || 0).toLocaleString('es-VE')}
+                        Bs. {activeTab === 'inventory' ? item.balance_value_bs.toLocaleString('es-VE') : item.amount_bs.toLocaleString('es-VE')}
                     </div>
                 </div>
             ))}
